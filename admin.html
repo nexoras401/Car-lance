@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarLance - Painel Administrativo</title>
+    <link rel="icon" type="image/webp" href="logo-128.webp">
+    <link rel="preload" as="font" type="font/woff2" href="poppins-600.woff2" crossorigin>
+    <link rel="preload" as="font" type="font/woff2" href="poppins-700.woff2" crossorigin>
+    <link rel="stylesheet" href="fonts.css">
+    <style>
+        :root {
+            --blue-primary: #2563EB;
+            --blue-dark: #1D4ED8;
+            --blue-light: #EFF6FF;
+            --navy: #0F172A;
+            --navy-2: #1E293B;
+            --white: #FFFFFF;
+            --gray-50: #F8FAFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #E2E8F0;
+            --gray-300: #CBD5E1;
+            --gray-400: #94A3B8;
+            --gray-500: #64748B;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1E293B;
+            --gray-900: #0F172A;
+            --green: #10B981;
+            --green-bg: #D1FAE5;
+            --red: #EF4444;
+            --red-bg: #FEE2E2;
+            --orange: #F59E0B;
+            --orange-bg: #FEF3C7;
+            --purple: #8B5CF6;
+            --purple-bg: #EDE9FE;
+            --sidebar-w: 264px;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.16);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Poppins',sans-serif; background:linear-gradient(180deg, #F6F8FB 0%, #EEF2F7 100%); color:var(--gray-800); }
+        ::-webkit-scrollbar { width:8px; height:8px; }
+        ::-webkit-scrollbar-thumb { background:var(--gray-300); border-radius:8px; }
+        ::-webkit-scrollbar-thumb:hover { background:var(--gray-400); }
+        ::-webkit-scrollbar-track { background:transparent; }
+
+        /* ==================== LOGIN ==================== */
+        .login-page {
+            min-height:100vh; display:flex; align-items:center; justify-content:center;
+            background:
+                radial-gradient(1200px 600px at 10% -10%, rgba(37, 99, 235, 0.35), transparent 60%),
+                radial-gradient(900px 500px at 110% 110%, rgba(139, 92, 246, 0.25), transparent 60%),
+                linear-gradient(135deg, #0B1220 0%, #0F172A 45%, #16294D 100%);
+            padding:20px;
+        }
+        .login-card {
+            background:rgba(255,255,255,0.98); border-radius:22px; padding:44px 40px 36px; width:100%; max-width:440px;
+            box-shadow:0 30px 80px rgba(0,0,0,0.45);
+            border:1px solid rgba(255,255,255,0.6);
+            animation:loginIn 0.5s ease;
+        }
+        @keyframes loginIn { from { opacity:0; transform:translateY(16px) scale(0.98); } to { opacity:1; transform:none; } }
+        .login-logo { text-align:center; margin-bottom:30px; }
+        .login-logo img { height:60px; margin-bottom:10px; filter:drop-shadow(0 6px 16px rgba(37,99,235,0.25)); }
+        .login-logo h2 { font-size:23px; font-weight:700; color:var(--gray-900); margin-bottom:4px; letter-spacing:-0.3px; }
+        .login-logo p { font-size:13px; color:var(--gray-500); }
+        .login-field { margin-bottom:18px; }
+        .login-field label { display:block; font-size:12.5px; font-weight:600; color:var(--gray-700); margin-bottom:7px; text-transform:uppercase; letter-spacing:0.5px; }
+        .login-field input {
+            width:100%; padding:13px 16px; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm);
+            font-size:14px; font-family:'Poppins',sans-serif; outline:none; transition:border 0.2s, box-shadow 0.2s;
+            background:var(--gray-50);
+        }
+        .login-field input:focus { border-color:var(--blue-primary); box-shadow:0 0 0 4px rgba(37,99,235,0.12); background:var(--white); }
+        .login-btn {
+            width:100%; padding:14px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:var(--white); border:none;
+            border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif;
+            transition:transform 0.15s, box-shadow 0.2s; box-shadow:0 8px 20px rgba(37,99,235,0.35);
+        }
+        .login-btn:hover { transform:translateY(-1px); box-shadow:0 12px 26px rgba(37,99,235,0.45); }
+        .login-btn:active { transform:translateY(0); }
+        .login-error { font-size:13px; color:var(--red); margin-top:10px; display:none; }
+        .login-error.visible { display:block; }
+        .login-footer { text-align:center; margin-top:22px; font-size:12px; color:var(--gray-400); }
+
+        /* ==================== LAYOUT ==================== */
+        .admin-layout { display:none; min-height:100vh; }
+        .admin-layout.active { display:flex; }
+
+        /* Sidebar */
+        .sidebar {
+            width:var(--sidebar-w); background:linear-gradient(180deg, #0B1220 0%, #101B33 100%); position:fixed; top:0; left:0; bottom:0;
+            display:flex; flex-direction:column; z-index:100; transition:transform 0.3s;
+            border-right:1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-header { padding:26px 22px; border-bottom:1px solid rgba(255,255,255,0.07); }
+        .sidebar-header img { height:42px; margin-bottom:6px; }
+        .sidebar-header span { font-size:11.5px; color:rgba(255,255,255,0.45); letter-spacing:1.5px; text-transform:uppercase; }
+        .sidebar-nav { flex:1; padding:18px 14px; overflow-y:auto; }
+        .sidebar-link {
+            display:flex; align-items:center; gap:12px; padding:13px 16px; border-radius:var(--radius-sm);
+            color:rgba(255,255,255,0.55); text-decoration:none; font-size:14px; font-weight:500;
+            transition:all 0.2s; margin-bottom:5px; cursor:pointer; position:relative;
+        }
+        .sidebar-link:hover { background:rgba(255,255,255,0.07); color:var(--white); }
+        .sidebar-link.active {
+            background:linear-gradient(135deg, rgba(37,99,235,0.95), rgba(29,78,216,0.95));
+            color:var(--white); box-shadow:0 8px 20px rgba(37,99,235,0.35);
+        }
+        .sidebar-link svg { width:19px; height:19px; flex-shrink:0; }
+        .sidebar-link .badge {
+            margin-left:auto; background:var(--red); color:var(--white); font-size:11px;
+            font-weight:600; padding:2px 9px; border-radius:8px;
+        }
+        .sidebar-footer {
+            padding:16px 20px; border-top:1px solid rgba(255,255,255,0.07);
+            display:flex; align-items:center; gap:12px;
+        }
+        .sidebar-avatar {
+            width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg, #2563EB, #8B5CF6);
+            display:flex; align-items:center; justify-content:center; color:var(--white);
+            font-size:14px; font-weight:600; flex-shrink:0;
+        }
+        .sidebar-user { flex:1; min-width:0; }
+        .sidebar-user-name { font-size:13px; font-weight:600; color:var(--white); }
+        .sidebar-user-role { font-size:11px; color:rgba(255,255,255,0.45); }
+        .sidebar-logout {
+            background:none; border:none; cursor:pointer; padding:6px; color:rgba(255,255,255,0.5);
+            transition:color 0.2s, background 0.2s; border-radius:8px;
+        }
+        .sidebar-logout:hover { color:var(--red); background:rgba(239,68,68,0.12); }
+        .sidebar-logout svg { width:18px; height:18px; }
+
+        /* Main content */
+        .main-content { margin-left:var(--sidebar-w); flex:1; min-height:100vh; }
+        .topbar {
+            height:70px; background:rgba(255,255,255,0.85); backdrop-filter:blur(12px);
+            border-bottom:1px solid var(--gray-200);
+            display:flex; align-items:center; justify-content:space-between; padding:0 36px;
+            position:sticky; top:0; z-index:50;
+        }
+        .topbar-title { font-size:20px; font-weight:700; color:var(--gray-900); letter-spacing:-0.3px; }
+        .menu-toggle {
+            display:none; background:none; border:none; cursor:pointer; padding:8px;
+            border-radius:8px; color:var(--gray-700); transition:background 0.2s;
+        }
+        .menu-toggle:hover { background:var(--gray-100); }
+        .menu-toggle svg { width:22px; height:22px; }
+        .sidebar-backdrop {
+            display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:96;
+        }
+        .sidebar-backdrop.show { display:block; }
+        .topbar-actions { display:flex; align-items:center; gap:12px; }
+        .topbar-btn {
+            padding:10px 20px; background:linear-gradient(135deg, #2563EB, #1D4ED8); color:var(--white); border:none;
+            border-radius:var(--radius-sm); font-size:13.5px; font-weight:600; cursor:pointer;
+            font-family:'Poppins',sans-serif; display:flex; align-items:center; gap:7px;
+            transition:transform 0.15s, box-shadow 0.2s; box-shadow:0 6px 16px rgba(37,99,235,0.3);
+        }
+        .topbar-btn:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(37,99,235,0.4); }
+        .topbar-btn svg { width:16px; height:16px; }
+        .page-content { padding:32px 36px; }
+
+        /* ==================== DASHBOARD ==================== */
+        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:32px; }
+        .stat-card {
+            background:var(--white); border:1px solid var(--gray-200); border-radius:6px;
+            padding:24px; transition:transform 0.2s;
+        }
+        .stat-card:hover { transform:translateY(-2px); }
+        .stat-icon {
+            width:52px; height:52px; border-radius:14px; display:flex; align-items:center;
+            justify-content:center; margin-bottom:16px; font-size:24px;
+            box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04);
+        }
+        .stat-icon.blue { background:linear-gradient(135deg, #DBEAFE, #EFF6FF); }
+        .stat-icon.green { background:linear-gradient(135deg, #D1FAE5, #ECFDF5); }
+        .stat-icon.orange { background:linear-gradient(135deg, #FEF3C7, #FFFBEB); }
+        .stat-icon.red { background:linear-gradient(135deg, #FEE2E2, #FEF2F2); }
+        .stat-number { font-size:32px; font-weight:800; color:var(--gray-900); margin-bottom:4px; letter-spacing:-1px; }
+        .stat-label { font-size:13px; color:var(--gray-500); font-weight:500; }
+
+        /* ==================== TABLES ==================== */
+        .card { background:var(--white); border:1px solid var(--gray-200); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-sm); }
+        .card-header {
+            padding:20px 26px; border-bottom:1px solid var(--gray-200);
+            display:flex; align-items:center; justify-content:space-between; gap:16px;
+        }
+        .card-title { font-size:16px; font-weight:700; color:var(--gray-900); letter-spacing:-0.2px; }
+        .card-search {
+            padding:10px 16px; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm);
+            font-size:13px; font-family:'Poppins',sans-serif; outline:none; width:250px;
+            background:var(--gray-50); transition:border 0.2s, box-shadow 0.2s;
+        }
+        .card-search:focus { border-color:var(--blue-primary); box-shadow:0 0 0 4px rgba(37,99,235,0.1); background:var(--white); }
+        table { width:100%; border-collapse:collapse; }
+        th {
+            text-align:left; padding:14px 22px; font-size:11.5px; font-weight:600;
+            color:var(--gray-500); text-transform:uppercase; letter-spacing:0.8px;
+            background:var(--gray-50); border-bottom:1px solid var(--gray-200);
+        }
+        td { padding:15px 22px; font-size:13px; color:var(--gray-700); border-bottom:1px solid var(--gray-100); }
+        tr:hover td { background:#F7FAFF; }
+        .badge-status {
+            display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600;
+        }
+        .badge-status.active { background:var(--green-bg); color:#059669; }
+        .badge-status.pending { background:var(--orange-bg); color:#B45309; }
+        .badge-status.inactive { background:var(--red-bg); color:var(--red); }
+        .action-btn {
+            padding:7px 12px; border:1px solid var(--gray-200); border-radius:8px;
+            background:var(--white); cursor:pointer; font-size:12px; color:var(--gray-600);
+            transition:all 0.2s; font-family:'Poppins',sans-serif; font-weight:500;
+        }
+        .action-btn:hover { border-color:var(--blue-primary); color:var(--blue-primary); }
+        .action-btn.danger { color:var(--red); border-color:#FECACA; }
+        .action-btn.danger:hover { background:var(--red-bg); }
+        .action-btn.edit { color:var(--blue-primary); border-color:#BFDBFE; }
+        .action-btn.edit:hover { background:var(--blue-light); }
+        .table-empty { text-align:center; padding:56px 20px; color:var(--gray-400); font-size:14px; }
+
+        /* ==================== MODERN EXTRAS ==================== */
+        .dash-hero {
+            background:linear-gradient(120deg, #101B33 0%, #16294D 55%, #1D4ED8 130%);
+            border-radius:var(--radius); padding:28px 32px; margin-bottom:28px;
+            color:var(--white); display:flex; align-items:center; justify-content:space-between; gap:24px;
+            position:relative; overflow:hidden; box-shadow:var(--shadow-md);
+        }
+        .dash-hero::after {
+            content:''; position:absolute; right:-60px; top:-60px; width:260px; height:260px;
+            background:radial-gradient(circle, rgba(139,92,246,0.4), transparent 70%);
+        }
+        .dash-hero h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin-bottom:6px; }
+        .dash-hero p { font-size:13.5px; color:rgba(255,255,255,0.65); max-width:560px; line-height:1.6; }
+        .dash-hero .hero-date {
+            margin-top:14px; display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600;
+            background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); padding:7px 14px; border-radius:20px;
+        }
+        .table-wrap { overflow-x:auto; }
+
+        /* ==================== MODAL ==================== */
+        .modal-overlay {
+            display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+            background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;
+            backdrop-filter:blur(4px);
+        }
+        .modal-overlay.active { display:flex; }
+        .modal-box {
+            background:var(--white); border-radius:18px; width:100%; max-width:600px;
+            max-height:90vh; overflow-y:auto; animation:slideUp 0.3s ease; box-shadow:var(--shadow-lg);
+        }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px) scale(0.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .modal-header {
+            padding:26px 30px 0; display:flex; align-items:center; justify-content:space-between;
+        }
+        .modal-header h3 { font-size:19px; font-weight:700; color:var(--gray-900); letter-spacing:-0.3px; }
+        .modal-close {
+            width:34px; height:34px; border-radius:10px; background:var(--gray-100); border:none;
+            cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;
+        }
+        .modal-close:hover { background:var(--gray-200); }
+        .modal-close svg { width:16px; height:16px; color:var(--gray-500); }
+        .modal-body { padding:24px 30px 30px; }
+        .form-group { margin-bottom:16px; }
+        .form-group label { display:block; font-size:13px; font-weight:600; color:var(--gray-700); margin-bottom:6px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width:100%; padding:11px 15px; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm);
+            font-size:14px; font-family:'Poppins',sans-serif; outline:none; transition:border 0.2s, box-shadow 0.2s;
+            background:var(--gray-50);
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color:var(--blue-primary); box-shadow:0 0 0 4px rgba(37,99,235,0.1); background:var(--white);
+        }
+        .form-group textarea { resize:vertical; min-height:80px; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        .modal-footer { display:flex; justify-content:flex-end; gap:12px; margin-top:8px; }
+        .btn {
+            padding:11px 22px; border-radius:var(--radius-sm); font-size:14px; font-weight:600;
+            cursor:pointer; font-family:'Poppins',sans-serif; border:none; transition:all 0.2s;
+        }
+        .btn-primary { background:linear-gradient(135deg, #2563EB, #1D4ED8); color:var(--white); box-shadow:0 6px 16px rgba(37,99,235,0.3); }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(37,99,235,0.4); }
+        .btn-secondary { background:var(--gray-100); color:var(--gray-700); border:1px solid var(--gray-200); }
+        .btn-secondary:hover { background:var(--gray-200); }
+        .btn-danger { background:var(--red); color:var(--white); }
+        .btn-danger:hover { background:#DC2626; }
+
+        /* ==================== SECTIONS ==================== */
+        .admin-section { display:none; }
+        .admin-section.active { display:block; }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media(max-width:1024px) {
+            .sidebar { transform:translateX(-100%); }
+            .sidebar.open { transform:translateX(0); }
+            .sidebar-backdrop.show { display:block; }
+            .main-content { margin-left:0; }
+            .menu-toggle { display:flex; }
+            .stats-grid { grid-template-columns:repeat(2,1fr); }
+            .form-row { grid-template-columns:1fr; }
+            .page-content { padding:24px; }
+        }
+        /* ==================== MOBILE: BARRA INFERIOR + CARDS ==================== */
+        .admin-bottom-nav { display:none; }
+        @media(max-width:640px) {
+            .topbar { padding:0 14px; height:60px; }
+            .topbar-title { font-size:16px; }
+            .topbar-btn { padding:9px 14px; font-size:12.5px; }
+            .page-content { padding:14px 14px 96px; }
+            .stats-grid { grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px; }
+            .stat-card { padding:16px 14px; border-radius:12px; }
+            .stat-icon { width:42px; height:42px; font-size:20px; margin-bottom:10px; border-radius:12px; }
+            .stat-number { font-size:24px; }
+            .stat-label { font-size:11px; }
+            .dash-hero { padding:18px; margin-bottom:18px; }
+            .dash-hero h2 { font-size:17px; }
+            .card-header { flex-direction:column; align-items:stretch; gap:10px; padding:16px; }
+            .card-search { width:100%; }
+            /* Modais viram bottom-sheet */
+            .modal-overlay.active { align-items:flex-end; }
+            .modal-box { max-width:100%; max-height:94vh; border-radius:20px 20px 0 0; }
+            .modal-header { padding:20px 18px 0; }
+            .modal-body { padding:16px 18px 22px; }
+            .modal-close { width:40px; height:40px; }
+            .modal-footer { flex-wrap:wrap; }
+            .modal-footer .btn { flex:1; padding:13px 16px; }
+            .btn { padding:13px 20px; }
+            /* Inputs com font-size 16px = iOS não dá zoom ao focar */
+            .form-group input, .form-group select, .form-group textarea { padding:13px 14px; font-size:16px; }
+            .login-field input { font-size:16px; }
+            .login-card { padding:32px 22px 28px; }
+            .action-btn { padding:10px 16px; font-size:13px; }
+            .toast-wrap { left:12px; right:12px; bottom:86px; }
+            .toast { max-width:none; }
+            /* Sidebar mais larga e dedos confortáveis */
+            .sidebar { width:min(84vw, 300px); }
+            .sidebar-link { padding:15px 16px; }
+            /* Detalhes do usuário em coluna única */
+            #detailBody > div { grid-template-columns:1fr !important; gap:10px !important; }
+
+            /* Navegação inferior estilo app */
+            .admin-bottom-nav {
+                display:flex; position:fixed; bottom:0; left:0; right:0;
+                background:rgba(255,255,255,0.97); backdrop-filter:blur(12px);
+                border-top:1px solid var(--gray-200); z-index:95;
+                padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+                justify-content:space-around; box-shadow:0 -4px 20px rgba(15,23,42,0.06);
+            }
+            .admin-bottom-nav button {
+                flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+                background:none; border:none; cursor:pointer; padding:6px 2px;
+                color:var(--gray-400); font-family:'Poppins',sans-serif; font-size:10px; font-weight:600;
+                position:relative; -webkit-tap-highlight-color:transparent; transition:color 0.2s;
+            }
+            .admin-bottom-nav button svg { width:21px; height:21px; }
+            .admin-bottom-nav button.active { color:var(--blue-primary); }
+            .admin-bottom-nav .badge {
+                position:absolute; top:0; right:calc(50% - 24px);
+                background:var(--red); color:var(--white); font-size:9px; font-weight:700;
+                padding:1px 6px; border-radius:8px; line-height:1.5;
+            }
+
+            /* Tabelas viram cards empilhados com rótulos */
+            .table-wrap { overflow-x:visible; }
+            table, tbody, tr, td { display:block; width:100%; }
+            thead { display:none; }
+            table tr {
+                background:var(--white); border:1px solid var(--gray-200); border-radius:12px;
+                margin-bottom:12px; padding:4px 0; box-shadow:var(--shadow-sm);
+            }
+            table td {
+                display:flex; justify-content:space-between; align-items:center; gap:14px;
+                padding:10px 14px; border-bottom:1px solid var(--gray-100); text-align:right; font-size:13px;
+            }
+            table td:last-child { border-bottom:none; }
+            table td::before {
+                content:attr(data-label); font-size:10.5px; font-weight:600; color:var(--gray-400);
+                text-transform:uppercase; letter-spacing:0.6px; text-align:left; flex-shrink:0;
+            }
+            table tr:hover td { background:transparent; }
+        }
+        /* Image tabs */
+        .img-tab {
+            padding:9px 18px; font-size:13px; font-weight:500; border:none; cursor:pointer;
+            font-family:'Poppins',sans-serif; background:var(--gray-50); color:var(--gray-500);
+            transition:all 0.2s;
+        }
+        .img-tab.active {
+            background:linear-gradient(135deg, #2563EB, #1D4ED8); color:var(--white); font-weight:600;
+        }
+        #imgDropZone.dragover {
+            border-color:var(--blue-primary) !important;
+            background:var(--blue-light) !important;
+        }
+        /* Toast notifications */
+        .toast-wrap { position:fixed; bottom:24px; right:24px; z-index:99999; display:flex; flex-direction:column; gap:10px; }
+        .toast {
+            display:flex; align-items:center; gap:10px; background:var(--gray-900); color:#fff;
+            font-size:14px; font-weight:500; padding:14px 20px; border-radius:8px;
+            box-shadow:0 8px 30px rgba(0,0,0,0.25); animation:toastIn 0.3s ease;
+            max-width:340px; line-height:1.4;
+        }
+        .toast.success { background:var(--green); }
+        .toast.error { background:var(--red); }
+        @keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    </style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div class="login-page" id="loginPage">
+    <div class="login-card">
+        <div class="login-logo">
+            <img src="logo-192.webp" alt="CarLance" width="192" height="192" fetchpriority="high">
+            <h2>Painel Administrativo</h2>
+            <p>CarLance Leilões</p>
+        </div>
+        <form onsubmit="adminLogin(event)">
+            <div class="login-field">
+                <label>E-mail</label>
+                <input type="email" id="adminEmail" placeholder="E-mail do administrador" required autocomplete="off">
+            </div>
+            <div class="login-field">
+                <label>Senha</label>
+                <input type="password" id="adminSenha" placeholder="Senha" required autocomplete="off">
+            </div>
+            <div class="login-error" id="loginError">E-mail ou senha incorretos</div>
+            <button type="submit" class="login-btn">Entrar</button>
+        </form>
+        <div class="login-footer">Área restrita — acesso apenas para administradores autorizados</div>
+    </div>
+</div>
+
+<!-- ==================== ADMIN LAYOUT ==================== -->
+<div class="admin-layout" id="adminLayout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleAdminSidebar()"></div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="logo-192.webp" alt="CarLance" width="192" height="192" loading="lazy" decoding="async">
+            <span>Painel Administrativo</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-link active" data-page="dashboard" onclick="switchPage('dashboard')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Dashboard
+            </a>
+            <a class="sidebar-link" data-page="usuarios" onclick="switchPage('usuarios')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Usuários
+                <span class="badge" id="userCount">0</span>
+            </a>
+            <a class="sidebar-link" data-page="veiculos" onclick="switchPage('veiculos')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Veículos
+                <span class="badge" id="vehicleCount">0</span>
+            </a>
+            <a class="sidebar-link" data-page="lances" onclick="switchPage('lances')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Lances
+            </a>
+            <a class="sidebar-link" data-page="vendas" onclick="switchPage('vendas')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                Solicitações de Venda
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-avatar">AD</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-name">Admin</div>
+                <div class="sidebar-user-role">Administrador</div>
+            </div>
+            <button class="sidebar-logout" onclick="adminLogout()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main-content">
+        <div class="topbar">
+            <button class="menu-toggle" id="menuToggle" onclick="toggleAdminSidebar()" aria-label="Abrir menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h2 class="topbar-title" id="pageTitle">Dashboard</h2>
+            <div class="topbar-actions">
+                <button class="topbar-btn" id="topbarAction" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span id="topbarActionText">Adicionar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra inferior de navegação (mobile) -->
+        <nav class="admin-bottom-nav" id="adminBottomNav">
+            <button class="active" data-page="dashboard" onclick="switchPage('dashboard')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span>Início</span>
+            </button>
+            <button data-page="usuarios" onclick="switchPage('usuarios')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Usuários</span>
+                <span class="badge" id="bnUserCount" style="display:none;">0</span>
+            </button>
+            <button data-page="veiculos" onclick="switchPage('veiculos')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                <span>Veículos</span>
+                <span class="badge" id="bnVehicleCount" style="display:none;">0</span>
+            </button>
+            <button data-page="lances" onclick="switchPage('lances')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>Lances</span>
+            </button>
+            <button data-page="vendas" onclick="switchPage('vendas')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                <span>Vendas</span>
+            </button>
+        </nav>
+
+        <!-- ==================== DASHBOARD ==================== -->
+        <div class="admin-section active" id="page-dashboard">
+            <div class="page-content">
+                <div class="dash-hero">
+                    <div>
+                        <h2>Bem-vindo ao seu painel 👋</h2>
+                        <p>Acompanhe usuários, veículos, lances e solicitações de venda da CarLance em tempo real — tudo em um só lugar.</p>
+                        <span class="hero-date" id="heroDate"></span>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">👥</div>
+                        <div class="stat-number" id="statUsers">0</div>
+                        <div class="stat-label">Usuários cadastrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">🚗</div>
+                        <div class="stat-number" id="statVehicles">0</div>
+                        <div class="stat-label">Veículos no estoque</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">🏷️</div>
+                        <div class="stat-number" id="statBids">0</div>
+                        <div class="stat-label">Lances realizados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">📋</div>
+                        <div class="stat-number" id="statSells">0</div>
+                        <div class="stat-label">Solicitações de venda</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Últimos usuários cadastrados</span>
+                    </div>
+                    <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Data</th></tr></thead>
+                        <tbody id="recentUsers"></tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== USUÁRIOS ==================== -->
+        <div class="admin-section" id="page-usuarios">
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Todos os usuários</span>
+                        <input type="text" class="card-search" placeholder="Buscar usuário..." oninput="filterUsers(this.value)">
+                    </div>
+                    <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Nome</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Cidade</th><th>Data</th><th>Ações</th></tr></thead>
+                        <tbody id="usersTable"></tbody>
+                    </table>
+                    </div>
+                    <div class="table-empty" id="usersEmpty">Nenhum usuário cadastrado ainda.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VEÍCULOS ==================== -->
+        <div class="admin-section" id="page-veiculos">
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Todos os veículos</span>
+                        <input type="text" class="card-search" placeholder="Buscar veículo..." oninput="filterVehicles(this.value)">
+                    </div>
+                    <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Img</th><th>Nome</th><th>Câmbio</th><th>Combustível</th><th>Cor</th><th>Placa</th><th>Km</th><th>Nota</th><th>Preço</th><th>Ações</th></tr></thead>
+                        <tbody id="vehiclesTable"></tbody>
+                    </table>
+                    </div>
+                    <div class="table-empty" id="vehiclesEmpty">Nenhum veículo cadastrado.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== LANCES ==================== -->
+        <div class="admin-section" id="page-lances">
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Todos os lances</span>
+                    </div>
+                    <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Usuário</th><th>Veículo</th><th>Valor</th><th>Data</th><th>Ações</th></tr></thead>
+                        <tbody id="bidsTable"></tbody>
+                    </table>
+                    </div>
+                    <div class="table-empty" id="bidsEmpty">Nenhum lance realizado ainda.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VENDAS ==================== -->
+        <div class="admin-section" id="page-vendas">
+            <div class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Solicitações de venda</span>
+                    </div>
+                    <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Veículo</th><th>Placa</th><th>Data</th><th>Ações</th></tr></thead>
+                        <tbody id="sellsTable"></tbody>
+                    </table>
+                    </div>
+                    <div class="table-empty" id="sellsEmpty">Nenhuma solicitação de venda ainda.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL VEÍCULO ==================== -->
+<div class="modal-overlay" id="vehicleModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="vehicleModalTitle">Adicionar veículo</h3>
+            <button class="modal-close" onclick="closeVehicleModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form onsubmit="saveVehicle(event)">
+                <input type="hidden" id="veiculoEditId">
+                <div class="form-group" style="background:var(--blue-light); padding:16px; border-radius:6px; border:1px solid #BBDEFB;">
+                    <label style="color:var(--blue-dark);">Valor do veículo (R$)</label>
+                    <input type="number" id="veiculoPreco" placeholder="Ex: 95000" required style="font-size:18px; font-weight:700; border-color:var(--blue-primary); padding:14px 16px;">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome do veículo</label>
+                        <input type="text" id="veiculoNome" placeholder="Ex: Honda Civic" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Detalhes</label>
+                        <input type="text" id="veiculoDetalhes" placeholder="Ex: 1.5 Turbo EXL Automático">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ano</label>
+                        <input type="text" id="veiculoAno" placeholder="Ex: 2023/2023" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quilometragem</label>
+                        <input type="number" id="veiculoKm" placeholder="Ex: 15000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select id="veiculoTipo" required>
+                            <option value="carro">Carro</option>
+                            <option value="moto">Moto</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nota de avaliação (0-10)</label>
+                        <input type="number" id="veiculoNota" min="0" max="10" placeholder="Ex: 08">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Placa</label>
+                        <input type="text" id="veiculoPlaca" placeholder="Ex: ABC1D23" maxlength="7" style="text-transform:uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label>Cor</label>
+                        <input type="text" id="veiculoCor" placeholder="Ex: Preta, Branca, Prata">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Câmbio</label>
+                        <select id="veiculoCambio">
+                            <option value="">Selecione</option>
+                            <option value="Automático">Automático</option>
+                            <option value="Manual">Manual</option>
+                            <option value="CVT">CVT</option>
+                            <option value="Semi-automático">Semi-automático</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Combustível</label>
+                        <select id="veiculoCombustivel">
+                            <option value="">Selecione</option>
+                            <option value="Gasolina">Gasolina</option>
+                            <option value="Etanol">Etanol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Flex">Flex</option>
+                            <option value="Elétrico">Elétrico</option>
+                            <option value="Híbrido">Híbrido</option>
+                            <option value="GNV">GNV</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Ícone (emoji)</label>
+                    <input type="text" id="veiculoIcon" placeholder="🚗 ou 🏍️" value="🚗">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data do pregão</label>
+                        <input type="text" id="veiculoPregao" placeholder="Ex: 15/09">
+                    </div>
+                    <div class="form-group">
+                        <label>Lote</label>
+                        <input type="text" id="veiculoLote" placeholder="Ex: Lote 01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Código veículo</label>
+                    <input type="text" id="veiculoCod" placeholder="Ex: 60105321">
+                </div>
+                <div class="form-group">
+                    <label>Imagem do veículo</label>
+                    <div style="display:flex; gap:0; margin-bottom:8px; border:1px solid var(--gray-200); border-radius:4px; overflow:hidden; width:fit-content;">
+                        <button type="button" class="img-tab active" onclick="switchImgTab('url', this)">Por URL</button>
+                        <button type="button" class="img-tab" onclick="switchImgTab('file', this)">Por arquivo</button>
+                    </div>
+                    <div id="imgTabUrl">
+                        <input type="text" id="veiculoImg" placeholder="https://exemplo.com/foto.jpg">
+                    </div>
+                    <div id="imgTabFile" style="display:none;">
+                        <div id="imgDropZone" style="border:2px dashed var(--gray-300); border-radius:4px; padding:24px; text-align:center; cursor:pointer; transition:border-color 0.2s; background:var(--gray-50);" onclick="document.getElementById('veiculoFile').click()" ondragover="event.preventDefault(); this.style.borderColor='var(--blue-primary)';" ondragleave="this.style.borderColor='var(--gray-300)';" ondrop="handleImgDrop(event)">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <p style="font-size:13px; color:var(--gray-500); margin-bottom:4px;">Arraste uma imagem ou <span style="color:var(--blue-primary); font-weight:600;">clique para selecionar</span></p>
+                            <p style="font-size:11px; color:var(--gray-400);">PNG, JPG, WEBP (máx. 5MB)</p>
+                        </div>
+                        <input type="file" id="veiculoFile" accept="image/*" style="display:none;" onchange="handleImgFile(this)">
+                        <div id="imgPreview" style="display:none; margin-top:12px; position:relative;">
+                            <img id="imgPreviewImg" style="width:100%; max-height:160px; object-fit:cover; border-radius:4px; border:1px solid var(--gray-200);">
+                            <button type="button" onclick="removeImgPreview()" style="position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:4px; background:var(--red); color:white; border:none; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">×</button>
+                            <p id="imgFileName" style="font-size:12px; color:var(--gray-500); margin-top:6px;"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="veiculoDesc" placeholder="Ex: LATARIA E PINTURA COM RISCO E AMASSADO..." style="min-height:100px;"></textarea>
+                </div>
+                <div style="border-top:2px solid var(--gray-200); margin:16px 0; padding-top:16px;">
+                    <h4 style="font-size:14px; font-weight:700; color:var(--gray-900); margin-bottom:16px;">⚙️ Configurações do Leilão</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data/hora de encerramento</label>
+                            <input type="datetime-local" id="veiculoEncerramento">
+                        </div>
+                        <div class="form-group">
+                            <label>Lance atual (R$)</label>
+                            <input type="number" id="veiculoLanceAtual" placeholder="Deixe vazio = lance inicial">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Comissão (%)</label>
+                            <input type="number" id="veiculoComissao" value="10" placeholder="Ex: 10">
+                        </div>
+                        <div class="form-group">
+                            <label>Taxa administrativa (%)</label>
+                            <input type="number" id="veiculoTaxa" value="3" placeholder="Ex: 3">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Localização</label>
+                        <input type="text" id="veiculoLocalizacao" placeholder="Ex: Bairro dos Fernandes - Jundiaí - SP">
+                    </div>
+                </div>
+                <div style="border-top:2px solid var(--gray-200); margin:16px 0; padding-top:16px;">
+                    <h4 style="font-size:14px; font-weight:700; color:var(--gray-900); margin-bottom:16px;">📋 Laudo e Condições</h4>
+                    <div class="form-group">
+                        <label>Resumo do Laudo</label>
+                        <textarea id="veiculoLaudo" placeholder="VEÍCULO COM MOTOR DESMONTADO, NÃO FUNCIONA PARTE ELÉTRICA..." style="min-height:80px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Condições de Venda</label>
+                        <textarea id="veiculoCondicoes" placeholder="Termos e condições de participação no leilão..." style="min-height:80px;"></textarea>
+                    </div>
+                </div>
+                <div style="border-top:2px solid var(--gray-200); margin:16px 0; padding-top:16px;">
+                    <h4 style="font-size:14px; font-weight:700; color:var(--gray-900); margin-bottom:16px;">🔧 Itens de Vistoria</h4>
+                    <div id="vistoriaList"></div>
+                    <button type="button" class="btn btn-secondary" onclick="addVistoriaItem()" style="margin-top:8px;font-size:12px;">+ Adicionar item</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeVehicleModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="veiculoSaveBtn">Salvar veículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL CONFIRMAR ==================== -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box" style="max-width:400px;">
+        <div class="modal-header">
+            <h3 id="confirmTitle">Confirmar exclusão</h3>
+            <button class="modal-close" onclick="document.getElementById('confirmModal').classList.remove('active')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:14px; color:var(--gray-600); margin-bottom:24px;" id="confirmMsg">Tem certeza que deseja excluir?</p>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="document.getElementById('confirmModal').classList.remove('active')">Cancelar</button>
+                <button class="btn btn-danger" id="confirmBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL DETALHES ==================== -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="detailTitle">Detalhes</h3>
+            <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('active')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" id="detailBody"></div>
+    </div>
+</div>
+
+<script>
+// Toast notification (substitui alert do navegador)
+function showToast(msg, type) {
+    let wrap = document.querySelector('.toast-wrap');
+    if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.className = 'toast-wrap';
+        document.body.appendChild(wrap);
+    }
+    const t = document.createElement('div');
+    t.className = 'toast' + (type ? ' ' + type : '');
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(() => {
+        t.style.transition = 'opacity 0.3s';
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 300);
+    }, 3500);
+}
+
+// ==================== SEGURANÇA ====================
+// Hash SHA-256 com salt — as senhas nunca ficam em texto puro no código.
+// Cada administrador tem seu próprio login. Para trocar a senha de um admin: rode no terminal
+//   node -e "const c=require('crypto');console.log(c.createHash('sha256').update('CarLance$ecure@2026::NOVASENHA').digest('hex'))"
+// e substitua o hash correspondente abaixo.
+const ADMIN_ACCOUNTS = [
+    { email: 'admin@carlance.com.br',    hash: '1caba5eccb5fe1a00f9254c2501dcd091436f74f0b2b961fa8878f88a61c8fda', nome: 'Administrador' },
+    { email: 'gerente@carlance.com.br',  hash: '5fdeb831bdd4640e541cee9e2f21a938a95cb984a4edc2ffb8a614e037a7a482', nome: 'Gerente' },
+    { email: 'suporte@carlance.com.br',  hash: '45381a1837102bafefe742afe7e845fcefedfa00768a994fc0ddc03fbfd64674', nome: 'Suporte' }
+];
+
+async function sha256(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Sessão do admin expira em 30 minutos (renovada a cada login)
+const ADMIN_SESSION_MS = 30 * 60 * 1000;
+
+function adminSessionValid() {
+    try {
+        const s = JSON.parse(localStorage.getItem('carleilao_admin_session') || 'null');
+        if (!s || !s.token || !s.expiresAt) return false;
+        if (Date.now() > s.expiresAt) { localStorage.removeItem('carleilao_admin_session'); return false; }
+        return true;
+    } catch (e) { return false; }
+}
+
+// Bloqueio progressivo: 3 erros = aguarde 15s, 5 = 60s, 8+ = 5min
+function getLoginAttempts() { return parseInt(localStorage.getItem('carleilao_admin_attempts') || '0'); }
+function getLockRemaining() {
+    const lockedUntil = parseInt(localStorage.getItem('carleilao_admin_locked_until') || '0');
+    return Math.max(0, lockedUntil - Date.now());
+}
+function registerFailedAttempt() {
+    const n = getLoginAttempts() + 1;
+    localStorage.setItem('carleilao_admin_attempts', String(n));
+    let lockMs = 0;
+    if (n >= 8) lockMs = 5 * 60 * 1000;
+    else if (n >= 5) lockMs = 60 * 1000;
+    else if (n >= 3) lockMs = 15 * 1000;
+    if (lockMs > 0) localStorage.setItem('carleilao_admin_locked_until', String(Date.now() + lockMs));
+    return { attempts: n, lockMs };
+}
+function clearAttempts() {
+    localStorage.removeItem('carleilao_admin_attempts');
+    localStorage.removeItem('carleilao_admin_locked_until');
+}
+
+function formatLockTime(ms) {
+    const s = Math.ceil(ms / 1000);
+    return s >= 60 ? Math.ceil(s / 60) + ' min' : s + 's';
+}
+
+// ==================== ADMIN LOGIN ====================
+async function adminLogin(e) {
+    if (e) e.preventDefault();
+    const lock = getLockRemaining();
+    if (lock > 0) {
+        document.getElementById('loginError').textContent = 'Muitas tentativas. Aguarde ' + formatLockTime(lock) + ' e tente novamente.';
+        document.getElementById('loginError').classList.add('visible');
+        return;
+    }
+    const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+    const senha = document.getElementById('adminSenha').value;
+    const hash = await sha256('CarLance$ecure@2026::' + senha);
+    const account = ADMIN_ACCOUNTS.find(a => a.email === email && a.hash === hash);
+    if (account) {
+        clearAttempts();
+        // Token de sessão aleatório + expiração
+        const token = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+        localStorage.setItem('carleilao_admin_session', JSON.stringify({ token, email: account.email, nome: account.nome, expiresAt: Date.now() + ADMIN_SESSION_MS }));
+        localStorage.removeItem('carleilao_admin'); // limpa flag antiga insegura
+        showAdmin();
+    } else {
+        const { attempts, lockMs } = registerFailedAttempt();
+        const msg = lockMs > 0
+            ? 'Muitas tentativas. Bloqueado por ' + formatLockTime(lockMs) + '.'
+            : 'E-mail ou senha incorretos. (' + attempts + ' de 3 tentativas antes do bloqueio)';
+        document.getElementById('loginError').textContent = msg;
+        document.getElementById('loginError').classList.add('visible');
+    }
+}
+
+function adminLogout() {
+    localStorage.removeItem('carleilao_admin_session');
+    document.getElementById('adminLayout').classList.remove('active');
+    document.getElementById('loginPage').style.display = '';
+}
+
+// Renova a sessão enquanto o admin está ativo; expira após 30 min de inatividade
+setInterval(function () {
+    const layout = document.getElementById('adminLayout');
+    if (!layout.classList.contains('active')) return;
+    try {
+        const s = JSON.parse(localStorage.getItem('carleilao_admin_session') || 'null');
+        if (!s) { adminLogout(); return; }
+        if (Date.now() > s.expiresAt) {
+            adminLogout();
+            alert('Sessão expirada por inatividade. Faça login novamente.');
+            return;
+        }
+        // renova por mais 30 min enquanto a aba está aberta e ativa
+        s.expiresAt = Date.now() + ADMIN_SESSION_MS;
+        localStorage.setItem('carleilao_admin_session', JSON.stringify(s));
+    } catch (e) { adminLogout(); }
+}, 60 * 1000);
+
+function showAdmin() {
+    // Preenche o nome do admin logado na sidebar
+    try {
+        const s = JSON.parse(localStorage.getItem('carleilao_admin_session') || 'null');
+        if (s && s.nome) {
+            document.querySelector('.sidebar-user-name').textContent = s.nome;
+            document.querySelector('.sidebar-user-role').textContent = s.email || 'Administrador';
+            const avatar = document.querySelector('.sidebar-avatar');
+            if (avatar && s.nome) avatar.textContent = s.nome.charAt(0).toUpperCase();
+        }
+    } catch (e) {}
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminLayout').classList.add('active');
+    loadDashboard();
+    loadUsers();
+    loadVehicles();
+    loadBids();
+    loadSells();
+}
+
+// ==================== NAVEGAÇÃO ====================
+function toggleAdminSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const open = sidebar.classList.toggle('open');
+    if (backdrop) backdrop.classList.toggle('show', open);
+}
+
+function switchPage(page, el) {
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.toggle('active', l.getAttribute('data-page') === page));
+    document.querySelectorAll('.admin-bottom-nav button').forEach(b => b.classList.toggle('active', b.getAttribute('data-page') === page));
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    // Fecha a sidebar no mobile após navegar
+    if (window.innerWidth <= 1024) {
+        document.getElementById('sidebar').classList.remove('open');
+        const bd = document.getElementById('sidebarBackdrop');
+        if (bd) bd.classList.remove('show');
+    }
+    const titles = { dashboard:'Dashboard', usuarios:'Usuários', veiculos:'Veículos', lances:'Lances', vendas:'Solicitações de Venda' };
+    document.getElementById('pageTitle').textContent = titles[page] || page;
+    window.scrollTo({ top: 0 });
+    const topbar = document.getElementById('topbarAction');
+    if (page === 'veiculos') {
+        topbar.style.display = 'flex';
+        document.getElementById('topbarActionText').textContent = 'Adicionar veículo';
+        topbar.onclick = () => openVehicleModal();
+    } else {
+        topbar.style.display = 'none';
+    }
+}
+
+// ==================== SEGURANÇA: ESCAPE XSS ====================
+// Escapa texto antes de injetar em HTML — protege as tabelas contra injeção de código
+function esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ==================== DASHBOARD ====================
+function loadDashboard() {
+    let users = [], vehicles = [], bids = [], sells = [];
+    try { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); } catch(e) {}
+    try { vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]'); } catch(e) {}
+    try { bids = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch(e) {}
+    try { sells = JSON.parse(localStorage.getItem('carleilao_vendas') || '[]'); } catch(e) {}
+    document.getElementById('statUsers').textContent = users.length;
+    document.getElementById('statVehicles').textContent = vehicles.length;
+    document.getElementById('statBids').textContent = bids.length;
+    document.getElementById('statSells').textContent = sells.length;
+    document.getElementById('userCount').textContent = users.length;
+    document.getElementById('vehicleCount').textContent = vehicles.length;
+    // Badges da barra inferior mobile (só aparecem quando há registros)
+    const bnU = document.getElementById('bnUserCount');
+    if (bnU) { bnU.textContent = users.length; bnU.style.display = users.length ? 'block' : 'none'; }
+    const bnV = document.getElementById('bnVehicleCount');
+    if (bnV) { bnV.textContent = vehicles.length; bnV.style.display = vehicles.length ? 'block' : 'none'; }
+    // Data no hero do dashboard
+    const heroDate = document.getElementById('heroDate');
+    if (heroDate) heroDate.textContent = '📅 ' + new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    // Últimos usuários
+    const tbody = document.getElementById('recentUsers');
+    const recent = users.slice(-5).reverse();
+    tbody.innerHTML = recent.length ? recent.map(u =>
+        '<tr><td data-label="Nome"><strong>' + esc(u.nome || '-') + '</strong></td><td data-label="E-mail">' + esc(u.email || '-') + '</td><td data-label="Telefone">' + esc(u.celular || '-') + '</td><td data-label="Data">' + (u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : '-') + '</td></tr>'
+    ).join('') : '<tr><td colspan="4" style="text-align:center; color:var(--gray-400); padding:24px;">Nenhum usuário ainda</td></tr>';
+}
+
+// ==================== USUÁRIOS ====================
+function loadUsers() {
+    let users = [];
+    try { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); } catch(e) {}
+    renderUsers(users);
+}
+
+function renderUsers(users) {
+    const tbody = document.getElementById('usersTable');
+    const empty = document.getElementById('usersEmpty');
+    if (!users.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = users.map((u, i) =>
+        '<tr>' +
+        '<td data-label="Nome"><strong>' + esc(u.nome || '-') + '</strong></td>' +
+        '<td data-label="CPF">' + esc(u.cpf || '-') + '</td>' +
+        '<td data-label="E-mail">' + esc(u.email || '-') + '</td>' +
+        '<td data-label="Telefone">' + esc(u.celular || '-') + '</td>' +
+        '<td data-label="Cidade">' + esc(u.cidade || '-') + (u.estado ? '/' + esc(u.estado) : '') + '</td>' +
+        '<td data-label="Data">' + (u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : '-') + '</td>' +
+        '<td data-label="Ações">' +
+            '<button class="action-btn edit" onclick="viewUser(' + i + ')">Ver</button> ' +
+            '<button class="action-btn danger" onclick="confirmDeleteUser(' + i + ')">Excluir</button>' +
+        '</td></tr>'
+    ).join('');
+}
+
+function filterUsers(q) {
+    let users = [];
+    try { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); } catch(e) {}
+    const filtered = users.filter(u => {
+        const text = String((u.nome || '') + (u.email || '') + (u.cpf || '') + (u.celular || '') + (u.cidade || '')).toLowerCase();
+        return text.includes(String(q || '').toLowerCase());
+    });
+    renderUsers(filtered);
+}
+
+function viewUser(i) {
+    const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
+    const u = users[i]; if (!u) return;
+    document.getElementById('detailTitle').textContent = 'Dados do usuário';
+    document.getElementById('detailBody').innerHTML =
+        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Nome</label><span style="font-size:14px; font-weight:500;">' + esc(u.nome || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">CPF</label><span style="font-size:14px; font-weight:500;">' + esc(u.cpf || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">E-mail</label><span style="font-size:14px; font-weight:500;">' + esc(u.email || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Telefone</label><span style="font-size:14px; font-weight:500;">' + esc(u.celular || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">CEP</label><span style="font-size:14px; font-weight:500;">' + esc(u.cep || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Endereço</label><span style="font-size:14px; font-weight:500;">' + esc(u.endereco || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Nº</label><span style="font-size:14px; font-weight:500;">' + esc(u.numero || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Complemento</label><span style="font-size:14px; font-weight:500;">' + esc(u.complemento || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Bairro</label><span style="font-size:14px; font-weight:500;">' + esc(u.bairro || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Cidade</label><span style="font-size:14px; font-weight:500;">' + esc(u.cidade || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Estado</label><span style="font-size:14px; font-weight:500;">' + esc(u.estado || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Nascimento</label><span style="font-size:14px; font-weight:500;">' + esc(u.nascimento || '-') + '</span></div>' +
+        '<div><label style="font-size:11px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">Cadastrado em</label><span style="font-size:14px; font-weight:500;">' + (u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') + ' às ' + new Date(u.criadoEm).toLocaleTimeString('pt-BR') : '-') + '</span></div>' +
+        '</div>';
+    document.getElementById('detailModal').classList.add('active');
+}
+
+function confirmDeleteUser(i) {
+    const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
+    const u = users[i]; if (!u) return;
+    document.getElementById('confirmMsg').textContent = 'Excluir o usuário "' + (u.nome || u.email) + '"? Esta ação é irreversível.';
+    document.getElementById('confirmBtn').onclick = () => {
+        users.splice(i, 1);
+        localStorage.setItem('carleilao_users', JSON.stringify(users));
+        loadUsers();
+        loadDashboard();
+        document.getElementById('confirmModal').classList.remove('active');
+    };
+    document.getElementById('confirmModal').classList.add('active');
+}
+
+// ==================== VEÍCULOS ====================
+function loadVehicles() {
+    let vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+    // Se não tiver veículos salvos no admin, carregar do index
+    if (!vehicles.length) {
+        vehicles = getDefaultVehicles();
+        localStorage.setItem('carleilao_vehicles', JSON.stringify(vehicles));
+    }
+    renderVehicles(vehicles);
+}
+
+function getDefaultVehicles() {
+    return [
+        { id: 1, name:'Chevrolet Onix', details:'1.0 Turbo Premier Automático', year:'2023/2023', km:133509, price:36000, type:'carro', icon:'🚗', lote:'Lote 01', codVeiculo:'60105321', dataPregao:'08/09', financiamento:true, pago:true, img:'', desc:'', placa:'ABC1D23', cor:'Prata', cambio:'Automático', combustivel:'Flex', nota:'08' },
+        { id: 2, name:'Hyundai Santa Fé', details:'2.4 Limited Automático', year:'2011/2012', km:0, price:1500, type:'carro', icon:'🚗', lote:'Lote 01', codVeiculo:'60104910', dataPregao:'19/09', financiamento:false, pago:true, img:'', desc:'LATARIA E PINTURA COM RISCO E AMASSADO. MOTOR DESMONTADO E FALTANDO PEÇAS.', placa:'F*****5', cor:'Preta', cambio:'Automático', combustivel:'Gasolina', nota:'02' },
+        { id: 3, name:'Toyota Corolla', details:'2.0 XEi Automático', year:'2022/2022', km:45200, price:115000, type:'carro', icon:'🚗', lote:'Lote 03', codVeiculo:'60107834', dataPregao:'15/09', financiamento:true, pago:true, img:'', desc:'', placa:'GHI4J56', cor:'Branco', cambio:'Automático', combustivel:'Flex', nota:'09' },
+        { id: 4, name:'Honda Civic', details:'1.5 Turbo EXL Automático', year:'2023/2023', km:12300, price:132000, type:'carro', icon:'🚗', lote:'Lote 04', codVeiculo:'60108123', dataPregao:'08/09', financiamento:true, pago:true, img:'', desc:'', placa:'KLM7N89', cor:'Preto', cambio:'CVT', combustivel:'Flex', nota:'10' },
+        { id: 5, name:'Jeep Compass', details:'1.3 T AT Longitude', year:'2022/2022', km:38700, price:165000, type:'carro', icon:'🚗', lote:'Lote 05', codVeiculo:'60109456', dataPregao:'20/09', financiamento:false, pago:true, img:'', desc:'', placa:'OPQ2R34', cor:'Vermelho', cambio:'Automático', combustivel:'Diesel', nota:'07' },
+        { id: 6, name:'Honda CG 160', details:'Titan Ex 160cc', year:'2023/2023', km:5200, price:18500, type:'moto', icon:'🏍️', lote:'Lote 07', codVeiculo:'60111012', dataPregao:'08/09', financiamento:false, pago:true, img:'', desc:'', placa:'STU5V67', cor:'Vermelha', cambio:'Manual', combustivel:'Gasolina', nota:'09' },
+    ];
+}
+
+function renderVehicles(vehicles) {
+    const tbody = document.getElementById('vehiclesTable');
+    const empty = document.getElementById('vehiclesEmpty');
+    if (!vehicles.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = vehicles.map(v =>
+        '<tr>' +
+        '<td data-label="Foto" style="font-size:20px;">' + (v.img ? '<img src="' + esc(v.img) + '" style="width:40px; height:30px; object-fit:cover; border-radius:2px;" alt="">' : esc(v.icon || '🚗')) + '</td>' +
+        '<td data-label="Veículo"><strong>' + esc(v.name) + '</strong><br><span style="font-size:11px; color:var(--gray-400);">' + esc(v.details || '') + '</span></td>' +
+        '<td data-label="Câmbio">' + esc(v.cambio || '-') + '</td>' +
+        '<td data-label="Combustível">' + esc(v.combustivel || '-') + '</td>' +
+        '<td data-label="Cor">' + esc(v.cor || '-') + '</td>' +
+        '<td data-label="Placa" style="font-weight:600; letter-spacing:1px;">' + esc(v.placa || '-') + '</td>' +
+        '<td data-label="Km">' + (v.km ? Number(v.km).toLocaleString('pt-BR') : '-') + '</td>' +
+        '<td data-label="Nota"><span style="font-weight:600; color:' + (v.nota >= 7 ? 'var(--green)' : v.nota >= 4 ? 'var(--orange)' : 'var(--red)') + ';">' + esc(v.nota || '-') + '</span></td>' +
+        '<td data-label="Preço"><strong>R$ ' + Number(v.price || 0).toLocaleString('pt-BR') + '</strong></td>' +
+        '<td data-label="Ações" style="white-space:nowrap;">' +
+            '<button class="action-btn edit" onclick="editVehicle(' + v.id + ')">Editar</button> ' +
+            '<button class="action-btn danger" onclick="confirmDeleteVehicle(' + v.id + ')">Excluir</button>' +
+        '</td></tr>'
+    ).join('');
+}
+
+function filterVehicles(q) {
+    const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+    const filtered = vehicles.filter(v => {
+        const text = (v.name + v.details + v.year + v.type).toLowerCase();
+        return text.includes(q.toLowerCase());
+    });
+    renderVehicles(filtered);
+}
+
+let nextVehicleId = 100;
+function openVehicleModal(vehicle) {
+    document.getElementById('vehicleModalTitle').textContent = vehicle ? 'Editar veículo' : 'Adicionar veículo';
+    document.getElementById('veiculoSaveBtn').textContent = vehicle ? 'Salvar alterações' : 'Adicionar veículo';
+    document.getElementById('veiculoEditId').value = vehicle ? vehicle.id : '';
+    document.getElementById('veiculoNome').value = vehicle ? vehicle.name : '';
+    document.getElementById('veiculoDetalhes').value = vehicle ? (vehicle.details || '') : '';
+    document.getElementById('veiculoAno').value = vehicle ? (vehicle.year || '') : '';
+    document.getElementById('veiculoKm').value = vehicle ? (vehicle.km || '') : '';
+    document.getElementById('veiculoPreco').value = vehicle ? (vehicle.preco || vehicle.price || '') : '';
+    document.getElementById('veiculoTipo').value = vehicle ? vehicle.type : 'carro';
+    document.getElementById('veiculoIcon').value = vehicle ? vehicle.icon : '🚗';
+    document.getElementById('veiculoPlaca').value = vehicle ? (vehicle.placa || '') : '';
+    document.getElementById('veiculoCor').value = vehicle ? (vehicle.cor || '') : '';
+    document.getElementById('veiculoCambio').value = vehicle ? (vehicle.cambio || '') : '';
+    document.getElementById('veiculoCombustivel').value = vehicle ? (vehicle.combustivel || '') : '';
+    document.getElementById('veiculoNota').value = vehicle ? (vehicle.nota || '') : '';
+    document.getElementById('veiculoPregao').value = vehicle ? (vehicle.dataPregao || '') : '';
+    document.getElementById('veiculoLote').value = vehicle ? (vehicle.lote || '') : '';
+    document.getElementById('veiculoCod').value = vehicle ? (vehicle.codVeiculo || '') : '';
+    document.getElementById('veiculoImg').value = vehicle ? (vehicle.img || '') : '';
+    document.getElementById('veiculoDesc').value = vehicle ? (vehicle.desc || '') : '';
+    document.getElementById('veiculoEncerramento').value = vehicle && vehicle.encerramento ? vehicle.encerramento : '';
+    document.getElementById('veiculoLanceAtual').value = vehicle ? (vehicle.currentBid || '') : '';
+    document.getElementById('veiculoComissao').value = vehicle ? (vehicle.comissao || 10) : 10;
+    document.getElementById('veiculoTaxa').value = vehicle ? (vehicle.taxa || 3) : 3;
+    document.getElementById('veiculoLocalizacao').value = vehicle ? (vehicle.localizacao || '') : '';
+    document.getElementById('veiculoLaudo').value = vehicle ? (vehicle.laudo || '') : '';
+    document.getElementById('veiculoCondicoes').value = vehicle ? (vehicle.condicoes || '') : '';
+    // Reset image tab to URL
+    document.querySelectorAll('.img-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.img-tab').classList.add('active');
+    document.getElementById('imgTabUrl').style.display = '';
+    document.getElementById('imgTabFile').style.display = 'none';
+    // Show preview if editing with image
+    removeImgPreview();
+    if (vehicle && vehicle.img && !vehicle.img.startsWith('data:')) {
+        document.getElementById('imgPreviewImg').src = vehicle.img;
+        document.getElementById('imgFileName').textContent = vehicle.img;
+        document.getElementById('imgPreview').style.display = '';
+        document.getElementById('imgDropZone').style.display = 'none';
+    }
+    loadVistoriaItems(vehicle);
+    document.getElementById('vehicleModal').classList.add('active');
+}
+
+function closeVehicleModal() {
+    document.getElementById('vehicleModal').classList.remove('active');
+    removeImgPreview();
+    document.getElementById('vistoriaList').innerHTML = '';
+}
+
+// ==================== IMAGEM ====================
+function switchImgTab(tab, btn) {
+    document.querySelectorAll('.img-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    if (tab === 'url') {
+        document.getElementById('imgTabUrl').style.display = '';
+        document.getElementById('imgTabFile').style.display = 'none';
+    } else {
+        document.getElementById('imgTabUrl').style.display = 'none';
+        document.getElementById('imgTabFile').style.display = '';
+    }
+}
+
+function handleImgFile(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Arquivo muito grande. Máximo 5MB.', 'error');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imgPreviewImg').src = e.target.result;
+            document.getElementById('imgFileName').textContent = file.name;
+            document.getElementById('imgPreview').style.display = '';
+            document.getElementById('imgDropZone').style.display = 'none';
+            // Salvar base64 no campo hidden
+            document.getElementById('veiculoImg').value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function handleImgDrop(e) {
+    e.preventDefault();
+    document.getElementById('imgDropZone').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const input = document.getElementById('veiculoFile');
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleImgFile(input);
+    }
+}
+
+function removeImgPreview() {
+    document.getElementById('imgPreview').style.display = 'none';
+    document.getElementById('imgDropZone').style.display = '';
+    document.getElementById('veiculoFile').value = '';
+}
+
+// ==================== VISTORIA ITEMS ====================
+function addVistoriaItem(item, situacao) {
+    const list = document.getElementById('vistoriaList');
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:8px;margin-bottom:6px;align-items:center;';
+    div.innerHTML =
+        '<input type="text" placeholder="Item (ex: Airbag)" class="vist-item" value="' + (item||'') + '" style="flex:1;padding:8px 12px;border:1px solid var(--gray-300);border-radius:4px;font-size:13px;font-family:Inter,sans-serif;">' +
+        '<input type="text" placeholder="Situação (ex: Possui)" class="vist-sit" value="' + (situacao||'') + '" style="flex:1;padding:8px 12px;border:1px solid var(--gray-300);border-radius:4px;font-size:13px;font-family:Inter,sans-serif;">' +
+        '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#E53935;cursor:pointer;font-size:18px;padding:4px;">✕</button>';
+    list.appendChild(div);
+}
+
+function getVistoriaItems() {
+    const items = [];
+    document.querySelectorAll('#vistoriaList > div').forEach(row => {
+        const item = row.querySelector('.vist-item');
+        const sit = row.querySelector('.vist-sit');
+        if (item && sit && item.value.trim()) {
+            items.push({ item: item.value.trim(), situacao: sit.value.trim() });
+        }
+    });
+    return items;
+}
+
+function loadVistoriaItems(vehicle) {
+    const list = document.getElementById('vistoriaList');
+    list.innerHTML = '';
+    let items = [];
+    try { items = JSON.parse(vehicle.vistoria || '[]'); } catch(e){}
+    if (items.length) {
+        items.forEach(i => addVistoriaItem(i.item, i.situacao));
+    } else {
+        const defaults = [
+            {item:'Airbag',sit:'Possui'},{item:'Ar Condicionado',sit:'Sim, funciona'},{item:'Bancos',sit:'Tecido'},{item:'Bateria (Carga)',sit:'Sim, com carga'},{item:'Blindado',sit:'Não'},{item:'Capota Conversível',sit:'Não possui'},{item:'Categoria Do Veiculo',sit:'Leve'},{item:'Central Multimídia',sit:'Sim, funciona'},{item:'Chassi Recuperado',sit:'Não'},{item:'Chassi Remarcado',sit:'Não'},{item:'Chaves',sit:'1Chave'},{item:'Câmbio',sit:'Funciona'},{item:'Câmera De Estacionamento',sit:'Sim, funciona'},{item:'Direção',sit:'Funciona'},{item:'Embreagem',sit:'Funciona'},{item:'Estepe',sit:'Possui'},{item:'Freios',sit:'Funciona'},{item:'Funcionando/Ligando (Motor)',sit:'Funciona'},{item:'Ignição Start/Stop',sit:'Sim'},{item:'Interior',sit:'Normal'},{item:'Kitgás',sit:'Não'},{item:'Número De Portas',sit:'4'},{item:'Placa Preta',sit:'Não'},{item:'Possui Abs',sit:'Sim'},{item:'Possui Acesso Ao Painel De Km',sit:'Sim'},{item:'Possui Carregador',sit:'Não'},{item:'Possui Manual Do Proprietário',sit:'Não'},{item:'Possui Passagem De Leilão',sit:'Não'},{item:'Possui Placa',sit:'Sim, as duas'},{item:'Possui Recall',sit:'Não'},{item:'Possui Sinistro Com Seguro',sit:'Não'},{item:'Possui Sinistro De Roubo/Furto',sit:'Não'},{item:'Retrovisor Elétrico',sit:'Sim'},{item:'Rádio',sit:'Não possui'},{item:'Sensor De Estacionamento Dianteiro',sit:'Não possui'},{item:'Sensor De Estacionamento Traseiro',sit:'Não possui'},{item:'Status Do Laudo',sit:'Reprovado'},{item:'Sucata',sit:'Não'},{item:'Teto Solar',sit:'Não possui'},{item:'Tipo De Direção',sit:'Direção Hidráulica'},{item:'Tipo De Roda',sit:'Roda de liga leve'},{item:'Trava Elétrica',sit:'Sim'},{item:'Vidro Elétrico Dianteiro Direito',sit:'Sim, funciona'},{item:'Vidro Elétrico Dianteiro Esquerdo',sit:'Sim, funciona'},{item:'Vidro Elétrico Traseiro Direito',sit:'Sim, funciona'},{item:'Vidro Elétrico Traseiro Esquerdo',sit:'Sim, funciona'}
+        ];
+        defaults.forEach(d => addVistoriaItem(d.item, d.sit));
+    }
+}
+
+function editVehicle(id) {
+    const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+    const v = vehicles.find(x => x.id === id);
+    if (v) openVehicleModal(v);
+}
+
+function saveVehicle(e) {
+    e.preventDefault();
+    let vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+    const editId = document.getElementById('veiculoEditId').value;
+    const data = {
+        name: document.getElementById('veiculoNome').value,
+        details: document.getElementById('veiculoDetalhes').value,
+        year: document.getElementById('veiculoAno').value,
+        km: parseInt(document.getElementById('veiculoKm').value) || 0,
+        price: parseInt(document.getElementById('veiculoPreco').value) || 0,
+        preco: document.getElementById('veiculoPreco').value,
+        type: document.getElementById('veiculoTipo').value,
+        icon: document.getElementById('veiculoIcon').value || '🚗',
+        placa: document.getElementById('veiculoPlaca').value.toUpperCase(),
+        cor: document.getElementById('veiculoCor').value,
+        cambio: document.getElementById('veiculoCambio').value,
+        combustivel: document.getElementById('veiculoCombustivel').value,
+        nota: document.getElementById('veiculoNota').value,
+        dataPregao: document.getElementById('veiculoPregao').value,
+        lote: document.getElementById('veiculoLote').value,
+        codVeiculo: document.getElementById('veiculoCod').value,
+        img: document.getElementById('veiculoImg').value,
+        desc: document.getElementById('veiculoDesc').value,
+        obs: document.getElementById('veiculoDesc').value,
+        encerramento: document.getElementById('veiculoEncerramento').value,
+        currentBid: parseInt(document.getElementById('veiculoLanceAtual').value) || 0,
+        comissao: parseInt(document.getElementById('veiculoComissao').value) || 10,
+        taxa: parseInt(document.getElementById('veiculoTaxa').value) || 3,
+        localizacao: document.getElementById('veiculoLocalizacao').value,
+        laudo: document.getElementById('veiculoLaudo').value,
+        condicoes: document.getElementById('veiculoCondicoes').value,
+        vistoria: JSON.stringify(getVistoriaItems()),
+        financiamento: false,
+        pago: true,
+        loteado: false
+    };
+    if (editId) {
+        const idx = vehicles.findIndex(v => v.id == editId);
+        if (idx >= 0) { vehicles[idx] = { ...vehicles[idx], ...data }; }
+    } else {
+        data.id = ++nextVehicleId;
+        vehicles.push(data);
+    }
+    localStorage.setItem('carleilao_vehicles', JSON.stringify(vehicles));
+    loadVehicles();
+    loadDashboard();
+    closeVehicleModal();
+}
+
+function confirmDeleteVehicle(id) {
+    const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+    const v = vehicles.find(x => x.id === id); if (!v) return;
+    document.getElementById('confirmMsg').textContent = 'Excluir o veículo "' + v.name + '"?';
+    document.getElementById('confirmBtn').onclick = () => {
+        const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+        const filtered = vehicles.filter(x => x.id !== id);
+        localStorage.setItem('carleilao_vehicles', JSON.stringify(filtered));
+        loadVehicles();
+        loadDashboard();
+        document.getElementById('confirmModal').classList.remove('active');
+    };
+    document.getElementById('confirmModal').classList.add('active');
+}
+
+// ==================== LANCES ====================
+function loadBids() {
+    let bids = [];
+    try { bids = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch(e) {}
+    const tbody = document.getElementById('bidsTable');
+    const empty = document.getElementById('bidsEmpty');
+    if (!bids.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = bids.map((b, i) =>
+        '<tr>' +
+        '<td data-label="Usuário">' + esc(b.userEmail || '-') + '</td>' +
+        '<td data-label="Veículo"><strong>' + esc(b.vehicleName || '-') + '</strong></td>' +
+        '<td data-label="Valor"><strong>R$ ' + Number(b.value || 0).toLocaleString('pt-BR') + '</strong></td>' +
+        '<td data-label="Data">' + (b.date ? new Date(b.date).toLocaleDateString('pt-BR') : '-') + '</td>' +
+        '<td data-label="Ações"><button class="action-btn danger" onclick="deleteBid(' + i + ')">Excluir</button></td>' +
+        '</tr>'
+    ).join('');
+}
+
+function deleteBid(i) {
+    const bids = JSON.parse(localStorage.getItem('carleilao_lances') || '[]');
+    bids.splice(i, 1);
+    localStorage.setItem('carleilao_lances', JSON.stringify(bids));
+    loadBids();
+    loadDashboard();
+}
+
+// ==================== VENDAS ====================
+function loadSells() {
+    let sells = [];
+    try { sells = JSON.parse(localStorage.getItem('carleilao_vendas') || '[]'); } catch(e) {}
+    const tbody = document.getElementById('sellsTable');
+    const empty = document.getElementById('sellsEmpty');
+    if (!sells.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = sells.map((s, i) =>
+        '<tr>' +
+        '<td data-label="Nome"><strong>' + esc(s.nome || '-') + '</strong></td>' +
+        '<td data-label="Telefone">' + esc(s.telefone || '-') + '</td>' +
+        '<td data-label="E-mail">' + esc(s.email || '-') + '</td>' +
+        '<td data-label="Veículo">' + esc(s.veiculo || '-') + '</td>' +
+        '<td data-label="Placa">' + esc(s.placa || '-') + '</td>' +
+        '<td data-label="Data">' + (s.date ? new Date(s.date).toLocaleDateString('pt-BR') : '-') + '</td>' +
+        '<td data-label="Ações"><button class="action-btn danger" onclick="deleteSell(' + i + ')">Excluir</button></td>' +
+        '</tr>'
+    ).join('');
+}
+
+function deleteSell(i) {
+    const sells = JSON.parse(localStorage.getItem('carleilao_vendas') || '[]');
+    sells.splice(i, 1);
+    localStorage.setItem('carleilao_vendas', JSON.stringify(sells));
+    loadSells();
+    loadDashboard();
+}
+
+// ==================== INIT ====================
+(function() {
+    // Só abre o painel se existir sessão válida (com token e não expirada)
+    if (adminSessionValid()) showAdmin();
+})();
+</script>
+</body>
+</html>

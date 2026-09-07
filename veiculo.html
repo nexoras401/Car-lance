@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarLance - Detalhes do Lote</title>
+    <link rel="preload" as="font" type="font/woff2" href="inter-700.woff2" crossorigin>
+    <link rel="preload" as="font" type="font/woff2" href="inter-800.woff2" crossorigin>
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+            color: #1a1a2e;
+            line-height: 1.5;
+        }
+
+        /* HEADER */
+        .top-bar {
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-bar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .top-bar .logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0d47a1;
+            text-decoration: none;
+        }
+        .top-bar .logo span { color: #1565c0; }
+        .top-bar-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #555;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .top-bar-back:hover { color: #0d47a1; }
+        .top-bar-back svg { width: 18px; height: 18px; }
+
+        /* LOT HEADER */
+        .lot-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 20px 0;
+        }
+        .lot-label {
+            display: inline-block;
+            background: #0d47a1;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        .lot-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            line-height: 1.3;
+            text-transform: uppercase;
+        }
+        .lot-subtitle {
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+            margin-top: 2px;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* GALLERY */
+        .gallery-section {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e5e5e5;
+        }
+        .gallery-main {
+            position: relative;
+            width: 100%;
+            padding-top: 62%;
+            background: #f0f0f0;
+            overflow: hidden;
+        }
+        .gallery-main img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s;
+        }
+        .gallery-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #333;
+            transition: all 0.2s;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .gallery-arrow:hover { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+        .gallery-arrow.prev { left: 12px; }
+        .gallery-arrow.next { right: 12px; }
+
+        /* LOT BADGE */
+        .lot-badge {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(255,255,255,0.95);
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            z-index: 5;
+        }
+        .lot-badge span { color: #0d47a1; }
+
+        /* THUMBNAILS */
+        .gallery-thumbs {
+            display: flex;
+            gap: 6px;
+            padding: 10px;
+            overflow-x: auto;
+            border-top: 1px solid #e5e5e5;
+        }
+        .gallery-thumbs::-webkit-scrollbar { height: 4px; }
+        .gallery-thumbs::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+        .thumb {
+            min-width: 72px;
+            height: 54px;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+        }
+        .thumb.active { border-color: #0d47a1; }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* TABS */
+        .gallery-tabs {
+            display: flex;
+            gap: 0;
+            padding: 0 10px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .gallery-tab {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .gallery-tab.active {
+            color: #0d47a1;
+            border-bottom-color: #0d47a1;
+        }
+        .gallery-tab svg { width: 16px; height: 16px; }
+
+        /* SPECS GRID */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            border-top: 1px solid #e5e5e5;
+        }
+        .spec-item {
+            padding: 14px 16px;
+            border-right: 1px solid #e5e5e5;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .spec-item:nth-child(4n) { border-right: none; }
+        .spec-item .label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .spec-item .value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        /* RIGHT PANEL - BID */
+        .bid-panel {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+            overflow: hidden;
+            position: sticky;
+            top: 70px;
+        }
+        .bid-status {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .bid-status-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .bid-status-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2e7d32;
+        }
+        .bid-status-value.encerrado { color: #c62828; }
+        .bid-status-value.em-breve { color: #f57c00; }
+
+        .bid-countdown {
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e5e5e5;
+            text-align: center;
+        }
+        .countdown-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .countdown-values {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .countdown-item {
+            text-align: center;
+        }
+        .countdown-item .num {
+            display: block;
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1a2e;
+            line-height: 1;
+        }
+        .countdown-item .unit {
+            font-size: 10px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .countdown-sep {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ccc;
+            line-height: 1;
+        }
+
+        .bid-values {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .bid-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+        .bid-row .label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+        .bid-row .value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .bid-row.highlight {
+            background: #e3f2fd;
+            margin: 0 -20px;
+            padding: 10px 20px;
+            border-radius: 4px;
+        }
+        .bid-row.highlight .value {
+            color: #0d47a1;
+            font-size: 20px;
+        }
+
+        .bid-input-area {
+            padding: 20px;
+        }
+        .bid-input-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .bid-input-wrap {
+            position: relative;
+            margin-bottom: 12px;
+        }
+        .bid-input-wrap .prefix {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            font-weight: 600;
+            color: #888;
+        }
+        .bid-input {
+            width: 100%;
+            padding: 14px 14px 14px 30px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            color: #1a1a2e;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .bid-input:focus { border-color: #0d47a1; }
+
+        .bid-btn {
+            width: 100%;
+            padding: 16px;
+            background: #0d47a1;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .bid-btn:hover { background: #0b3d91; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,71,161,0.3); }
+
+        .bid-note {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* HISTORY */
+        .history-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e5e5e5;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            user-select: none;
+        }
+        .history-toggle:hover { background: #f0f0f0; }
+        .history-toggle svg { width: 16px; height: 16px; transition: transform 0.3s; }
+        .history-toggle.open svg { transform: rotate(180deg); }
+
+        .history-body {
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .history-body.show { display: block; }
+        .history-body::-webkit-scrollbar { width: 4px; }
+        .history-body::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-user {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+        .history-user span { color: #888; font-weight: 400; }
+        .history-amount {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0d47a1;
+        }
+        .history-date {
+            font-size: 11px;
+            color: #999;
+        }
+        .history-empty {
+            padding: 30px 20px;
+            text-align: center;
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        /* BELOW GALLERY - INFO SECTIONS */
+        .below-gallery {
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+            overflow: hidden;
+        }
+        .info-card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .info-card-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .info-card-body {
+            padding: 20px 24px;
+        }
+
+        /* OBSERVATIONS */
+        .obs-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            line-height: 1.7;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* LOCATION */
+        .location-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 0;
+        }
+        .location-pin {
+            width: 36px;
+            height: 36px;
+            background: #e3f2fd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .location-pin svg { width: 18px; height: 18px; color: #0d47a1; }
+        .location-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* INSPECTION TABLE */
+        .inspection-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .inspection-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .inspection-table td {
+            padding: 7px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f0f0;
+            line-height: 1.3;
+        }
+        .inspection-table td:first-child {
+            font-weight: 600;
+            color: #333;
+            width: 55%;
+        }
+        .inspection-table td:last-child {
+            color: #555;
+            text-align: right;
+        }
+
+        /* HOW IT WORKS */
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .how-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .how-card:hover {
+            border-color: #0d47a1;
+            background: #f8faff;
+        }
+        .how-icon {
+            width: 40px;
+            height: 40px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .how-icon svg { width: 20px; height: 20px; color: #0d47a1; }
+        .how-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+        .how-arrow {
+            margin-left: auto;
+            color: #bbb;
+        }
+
+        /* CONFIRM MODAL */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirm-overlay.show { display: flex; }
+        .confirm-box {
+            background: #fff;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 440px;
+            overflow: hidden;
+        }
+        .confirm-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .confirm-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .confirm-body { padding: 20px 24px; }
+        .confirm-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .confirm-row .label { color: #666; }
+        .confirm-row .value { font-weight: 700; color: #1a1a2e; }
+        .confirm-row.total {
+            border-top: 2px solid #e5e5e5;
+            margin-top: 8px;
+            padding-top: 12px;
+            font-size: 16px;
+        }
+        .confirm-row.total .value { color: #0d47a1; font-size: 18px; }
+        .confirm-actions {
+            padding: 16px 24px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid #e5e5e5;
+        }
+        .confirm-cancel {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .confirm-cancel:hover { border-color: #bbb; }
+        .confirm-btn {
+            flex: 1;
+            padding: 12px;
+            background: #0d47a1;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .confirm-btn:hover { background: #0b3d91; }
+
+        /* MOBILE LANCE BAR */
+        .mobile-lance-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+            padding: 10px 20px;
+            z-index: 90;
+        }
+        .mobile-lance-btn {
+            width: 100%;
+            padding: 14px;
+            background: #0d47a1;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #1a1a2e;
+            color: #fff;
+            text-align: center;
+            padding: 24px 20px;
+            margin-top: 40px;
+            font-size: 13px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .bid-panel {
+                position: static;
+            }
+            .specs-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .spec-item:nth-child(2n) { border-right: none; }
+            .how-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .mobile-lance-bar {
+                display: block;
+            }
+            body { padding-bottom: 70px; }
+            .bid-btn { display: none; }
+            .bid-input-area { padding-bottom: 16px; }
+        }
+        @media (max-width: 480px) {
+            .lot-title { font-size: 17px; }
+            .how-grid { grid-template-columns: 1fr; }
+        }
+        /* Toast notifications */
+        .toast-wrap { position:fixed; bottom:24px; right:24px; z-index:99999; display:flex; flex-direction:column; gap:10px; }
+        .toast {
+            display:flex; align-items:center; gap:10px; background:#1a1a2e; color:#fff;
+            font-size:14px; font-weight:500; padding:14px 20px; border-radius:8px;
+            box-shadow:0 8px 30px rgba(0,0,0,0.25); animation:toastIn 0.3s ease;
+            max-width:340px; line-height:1.4;
+        }
+        .toast.success { background:#2e7d32; }
+        .toast.error { background:#c62828; }
+        @keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="top-bar-inner">
+            <a href="index.html" class="logo">Car<span>Lance</span></a>
+            <a href="index.html" class="top-bar-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- LOT HEADER -->
+    <div class="lot-header">
+        <div class="lot-label" id="lotBadge">Lote 1</div>
+        <h1 class="lot-title" id="lotTitle">VEÍCULO</h1>
+        <div class="lot-subtitle" id="lotSubtitle"></div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+        <!-- LEFT: GALLERY -->
+        <div class="gallery-section">
+            <div class="gallery-main">
+                <img id="mainImg" src="" alt="Foto do veículo" fetchpriority="high" decoding="async">
+                <button class="gallery-arrow prev" onclick="prevImg()">‹</button>
+                <button class="gallery-arrow next" onclick="nextImg()">›</button>
+                <div class="lot-badge" id="lotBadgeBottom"></div>
+            </div>
+            <div class="gallery-tabs">
+                <button class="gallery-tab active" onclick="switchTab(this, 'fotos')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    Fotos
+                </button>
+            </div>
+            <div class="gallery-thumbs" id="thumbs"></div>
+            <div class="specs-grid" id="specsGrid"></div>
+        </div>
+
+        <!-- RIGHT: BID PANEL -->
+        <div class="bid-panel">
+            <div class="bid-status">
+                <div class="bid-status-label">Status do leilão</div>
+                <div class="bid-status-value" id="bidStatus">Listagem em andamento</div>
+            </div>
+            <div class="bid-countdown">
+                <div class="countdown-label">Encerra em</div>
+                <div class="countdown-values">
+                    <div class="countdown-item"><span class="num" id="cdDays">--</span><span class="unit">Dias</span></div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-item"><span class="num" id="cdHours">--</span><span class="unit">Horas</span></div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-item"><span class="num" id="cdMin">--</span><span class="unit">Min</span></div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-item"><span class="num" id="cdSec">--</span><span class="unit">Seg</span></div>
+                </div>
+            </div>
+            <div class="bid-values">
+                <div class="bid-row">
+                    <span class="label">Lance inicial</span>
+                    <span class="value" id="bidInitial">R$ 0,00</span>
+                </div>
+                <div class="bid-row">
+                    <span class="label">Lance atual</span>
+                    <span class="value" id="bidCurrent">R$ 0,00</span>
+                </div>
+                <div class="bid-row highlight">
+                    <span class="label">Valor total c/ taxas</span>
+                    <span class="value" id="bidTotal">R$ 0,00</span>
+                </div>
+            </div>
+            <div class="bid-input-area">
+                <div class="bid-input-label">Digite seu lance</div>
+                <div class="bid-input-wrap">
+                    <span class="prefix">R$</span>
+                    <input type="text" class="bid-input" id="bidInput" placeholder="0,00" oninput="maskBRL(this)">
+                </div>
+                <button class="bid-btn" onclick="confirmBid()">DAR LANCE</button>
+                <div class="bid-note">O lance será validado após a confirmação.<br>Taxas e comissões serão aplicadas.</div>
+            </div>
+            <div class="history-toggle" onclick="toggleHistory(this)">
+                Histórico de lances
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="history-body" id="historyBody">
+                <div class="history-empty">Nenhum lance até o momento.</div>
+            </div>
+        </div>
+
+        <!-- BELOW GALLERY -->
+        <div class="below-gallery">
+            <!-- OBSERVATIONS -->
+            <div class="info-card" id="obsSection" style="display:none">
+                <div class="info-card-header"><h2>Observações</h2></div>
+                <div class="info-card-body">
+                    <div class="obs-text" id="obsText"></div>
+                </div>
+            </div>
+
+            <!-- LOCATION -->
+            <div class="info-card" id="locSection" style="display:none">
+                <div class="info-card-header"><h2>Localização do veículo</h2></div>
+                <div class="info-card-body">
+                    <div class="location-row">
+                        <div class="location-pin">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        </div>
+                        <div class="location-text" id="locText"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INSPECTION -->
+            <div class="info-card" id="inspectionSection" style="display:none">
+                <div class="info-card-header"><h2>Itens de vistoria</h2></div>
+                <div class="info-card-body" style="padding:0">
+                    <table class="inspection-table" id="inspectionTable"></table>
+                </div>
+            </div>
+
+            <!-- HOW IT WORKS -->
+            <div class="info-card">
+                <div class="info-card-header"><h2>Como funciona</h2></div>
+                <div class="info-card-body">
+                    <p style="font-size:13px;color:#888;margin-bottom:16px">Saiba como funciona o Leilão da CarLance</p>
+                    <div class="how-grid">
+                        <div class="how-card">
+                            <div class="how-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                            <div class="how-text">Documentação</div>
+                            <div class="how-arrow">›</div>
+                        </div>
+                        <div class="how-card">
+                            <div class="how-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+                            <div class="how-text">Pagamento</div>
+                            <div class="how-arrow">›</div>
+                        </div>
+                        <div class="how-card">
+                            <div class="how-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+                            <div class="how-text">Condições e termos</div>
+                            <div class="how-arrow">›</div>
+                        </div>
+                        <div class="how-card">
+                            <div class="how-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a2 2 0 01-2 2h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+                            <div class="how-text">Retirada</div>
+                            <div class="how-arrow">›</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE LANCE BAR -->
+    <div class="mobile-lance-bar">
+        <button class="mobile-lance-btn" onclick="mobileBid()">DAR LANCE — <span id="mobileLanceVal">R$ 0,00</span></button>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="confirm-overlay" id="confirmModal">
+        <div class="confirm-box">
+            <div class="confirm-header"><h3>Confirmar lance</h3></div>
+            <div class="confirm-body">
+                <p style="font-size:13px;color:#666;margin-bottom:16px">Você está prestes a realizar um lance:</p>
+                <div class="confirm-row"><span class="label">Lance</span><span class="value" id="cfLance">R$ 0,00</span></div>
+                <div class="confirm-row"><span class="label">Comissão do leiloeiro</span><span class="value" id="cfComissao">R$ 0,00</span></div>
+                <div class="confirm-row"><span class="label">Taxa administrativa</span><span class="value" id="cfTaxa">R$ 0,00</span></div>
+                <div class="confirm-row total"><span class="label">Total estimado</span><span class="value" id="cfTotal">R$ 0,00</span></div>
+            </div>
+            <div class="confirm-actions">
+                <button class="confirm-cancel" onclick="closeConfirm()">CANCELAR</button>
+                <button class="confirm-btn" onclick="submitBid()">CONFIRMAR LANCE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">© 2026 CarLance Leilões. Todos os direitos reservados.</div>
+
+<script>
+// Toast notification (substitui alert do navegador)
+function showToast(msg, type) {
+    let wrap = document.querySelector('.toast-wrap');
+    if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.className = 'toast-wrap';
+        document.body.appendChild(wrap);
+    }
+    const t = document.createElement('div');
+    t.className = 'toast' + (type ? ' ' + type : '');
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(() => {
+        t.style.transition = 'opacity 0.3s';
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 300);
+    }, 3500);
+}
+
+(function(){
+    // LOAD VEHICLE
+    const params = new URLSearchParams(location.search);
+    const vehicleId = params.get('id');
+    if (!vehicleId) { location.href = 'index.html'; return; }
+
+    const defaultVehicles = [
+        {id:'1',name:'Hyundai Santa Fé 2.4 MPI',details:'Automático 16V Gasolina 4P',year:'2011/2012',km:'147603',placa:'F*****5',cor:'Prata',cambio:'Automático',combustivel:'Gasolina',nota:'02',lote:'01',preco:'89900',img:'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800',icon:'🚗',dataPregao:'15/09/2026',codVeiculo:'001',status:'andamento',encerramento: Date.now()+86400000*5},
+        {id:'2',name:'Toyota Corolla Cross XRE',details:'Automático CVT 2.0 Flex 4P',year:'2022/2022',km:'32100',placa:'G*****8',cor:'Branco',cambio:'CVT',combustivel:'Flex',nota:'08',lote:'02',preco:'139900',img:'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800',icon:'🚗',dataPregao:'15/09/2026',codVeiculo:'002',status:'andamento',encerramento: Date.now()+86400000*5},
+        {id:'3',name:'Honda Civic Touring',details:'Turbo Automático 1.5 Flex 4P',year:'2021/2021',km:'45200',placa:'H*****2',cor:'Cinza',cambio:'Automático',combustivel:'Flex',nota:'09',lote:'03',preco:'159900',img:'https://images.unsplash.com/photo-1606611013016-969c19ba27d5?w=800',icon:'🚗',dataPregao:'15/09/2026',codVeiculo:'003',status:'andamento',encerramento: Date.now()+86400000*8},
+        {id:'4',name:'Jeep Compass Longitude',details:'Automático 2.0 Diesel 4x4',year:'2023/2023',km:'18500',placa:'J*****1',cor:'Preto',cambio:'Automático',combustivel:'Diesel',nota:'09',lote:'04',preco:'189900',img:'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800',icon:'🚗',dataPregao:'15/09/2026',codVeiculo:'004',status:'andamento',encerramento: Date.now()+86400000*3},
+        {id:'5',name:'Volkswagen T-Cross Highline',details:'Automático 1.4 TSI Flex 4P',year:'2022/2022',km:'28700',placa:'K*****3',cor:'Azul',cambio:'Automático',combustivel:'Flex',nota:'07',lote:'05',preco:'124900',img:'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800',icon:'🚗',dataPregao:'15/09/2026',codVeiculo:'005',status:'andamento',encerramento: Date.now()+86400000*7},
+        {id:'6',name:'Chevrolet Onix 1.0 LT',details:'Manual Flex 4P',year:'2023/2023',km:'133509',placa:'S*****4',cor:'Branco',cambio:'Manual',combustivel:'Álcool/Gasolina',nota:'05',lote:'06',preco:'59900',img:'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800',icon:'🚗',dataPregao:'15/09/2026',codVeiculo:'006',status:'andamento',encerramento: Date.now()+86400000*4}
+    ];
+
+    let allVehicles = [];
+    try { allVehicles = JSON.parse(localStorage.getItem('carleilao_vehicles')) || []; } catch(e){}
+    if (!allVehicles.length) allVehicles = defaultVehicles;
+
+    const vehicle = allVehicles.find(v => String(v.id) === String(vehicleId));
+    if (!vehicle) { showToast('Veículo não encontrado.', 'error'); setTimeout(() => { location.href = 'index.html'; }, 1200); return; }
+
+    // Normalizar campos
+    vehicle.price = Number(vehicle.price) || Number(vehicle.preco) || 0;
+    vehicle.km = Number(String(vehicle.km).replace(/\D/g,'')) || 0;
+    vehicle.preco = vehicle.price;
+    // Converter encerramento de string datetime para timestamp
+    if (vehicle.encerramento && typeof vehicle.encerramento === 'string') {
+        const parsed = new Date(vehicle.encerramento);
+        vehicle.encerramento = isNaN(parsed.getTime()) ? (Date.now() + 86400000*7) : parsed.getTime();
+    }
+
+    // FILL PAGE
+    document.title = 'CarLance - Lote ' + (vehicle.lote || vehicle.id);
+    document.getElementById('lotBadge').textContent = 'Lote ' + (vehicle.lote || vehicle.id);
+    document.getElementById('lotTitle').textContent = (vehicle.name || '').toUpperCase();
+    document.getElementById('lotSubtitle').textContent = (vehicle.details || '') + ' ' + (vehicle.year || '');
+    document.getElementById('lotBadgeBottom').innerHTML = '<span>Lote ' + (vehicle.lote || vehicle.id) + '</span>';
+
+    // IMAGES
+    let images = [];
+    if (vehicle.img) images = vehicle.img.split(',').map(s => s.trim()).filter(Boolean);
+    if (!images.length) images = ['https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800'];
+    let currentImg = 0;
+
+    function renderImg() {
+        document.getElementById('mainImg').src = images[currentImg] || images[0];
+        document.querySelectorAll('.thumb').forEach((t,i) => t.classList.toggle('active', i === currentImg));
+    }
+
+    function renderThumbs() {
+        const c = document.getElementById('thumbs');
+        c.innerHTML = '';
+        images.forEach((img, i) => {
+            const d = document.createElement('div');
+            d.className = 'thumb' + (i === 0 ? ' active' : '');
+            d.innerHTML = '<img src="' + img + '" alt="" loading="lazy" decoding="async">';
+            d.onclick = () => { currentImg = i; renderImg(); };
+            c.appendChild(d);
+        });
+    }
+
+    window.prevImg = function() { currentImg = (currentImg - 1 + images.length) % images.length; renderImg(); };
+    window.nextImg = function() { currentImg = (currentImg + 1) % images.length; renderImg(); };
+
+    renderThumbs();
+    renderImg();
+
+    // SPECS
+    const specs = [
+        {l:'Câmbio', v: vehicle.cambio || '—'},
+        {l:'Combustível', v: vehicle.combustivel || '—'},
+        {l:'Km', v: vehicle.km ? Number(vehicle.km).toLocaleString('pt-BR') : '—'},
+        {l:'Placa', v: vehicle.placa || '—'},
+        {l:'Ano', v: vehicle.year || '—'},
+        {l:'Cor', v: vehicle.cor || '—'},
+        {l:'Nota de avaliação', v: vehicle.nota || '—'},
+        {l:'Lote', v: vehicle.lote || '—'}
+    ];
+    document.getElementById('specsGrid').innerHTML = specs.map(s =>
+        '<div class="spec-item"><div class="label">' + s.l + '</div><div class="value">' + s.v + '</div></div>'
+    ).join('');
+
+    // BID VALUES - aceita 'preco' ou 'price'
+    const preco = Number(vehicle.preco) || Number(vehicle.price) || 0;
+    const comissaoPct = Number(vehicle.comissao) || 10;
+    const taxaPct = Number(vehicle.taxa) || 5;
+
+    document.getElementById('bidInitial').textContent = 'R$ ' + preco.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    document.getElementById('bidCurrent').textContent = 'R$ ' + preco.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+    function updateTotal(val) {
+        const c = val * comissaoPct / 100;
+        const t = val * taxaPct / 100;
+        const total = val + c + t;
+        document.getElementById('bidTotal').textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('mobileLanceVal').textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    }
+    updateTotal(preco);
+
+    // STATUS & COUNTDOWN
+    const statusEl = document.getElementById('bidStatus');
+    if (vehicle.status === 'encerrado') {
+        statusEl.textContent = 'Encerrado';
+        statusEl.className = 'bid-status-value encerrado';
+    } else if (vehicle.status === 'em_breve') {
+        statusEl.textContent = 'Liberação em breve';
+        statusEl.className = 'bid-status-value em-breve';
+    } else {
+        statusEl.textContent = 'Listagem em andamento';
+        statusEl.className = 'bid-status-value';
+    }
+
+    const endTime = vehicle.encerramento || (Date.now() + 86400000 * 7);
+    function updateCountdown() {
+        const diff = endTime - Date.now();
+        if (diff <= 0) {
+            document.getElementById('cdDays').textContent = '00';
+            document.getElementById('cdHours').textContent = '00';
+            document.getElementById('cdMin').textContent = '00';
+            document.getElementById('cdSec').textContent = '00';
+            return;
+        }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        document.getElementById('cdDays').textContent = String(d).padStart(2,'0');
+        document.getElementById('cdHours').textContent = String(h).padStart(2,'0');
+        document.getElementById('cdMin').textContent = String(m).padStart(2,'0');
+        document.getElementById('cdSec').textContent = String(s).padStart(2,'0');
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // MASK
+    window.maskBRL = function(el) {
+        let v = el.value.replace(/\D/g,'');
+        if (!v) { el.value = ''; return; }
+        v = (Number(v)/100).toLocaleString('pt-BR', {minimumFractionDigits:2});
+        el.value = v;
+    };
+
+    // CONFIRM BID
+    window.confirmBid = function() {
+        const user = JSON.parse(localStorage.getItem('carleilao_session') || localStorage.getItem('carleilao_user') || 'null');
+        if (!user) { location.href = 'index.html'; return; }
+
+        const raw = document.getElementById('bidInput').value.replace(/\D/g,'');
+        const val = Number(raw) / 100;
+        if (val < preco) { showToast('O lance deve ser maior que o lance inicial.', 'error'); return; }
+
+        const c = val * comissaoPct / 100;
+        const t = val * taxaPct / 100;
+        document.getElementById('cfLance').textContent = 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('cfComissao').textContent = 'R$ ' + c.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('cfTaxa').textContent = 'R$ ' + t.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('cfTotal').textContent = 'R$ ' + (val+c+t).toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+        document.getElementById('confirmModal').classList.add('show');
+    };
+
+    window.closeConfirm = function() { document.getElementById('confirmModal').classList.remove('show'); };
+
+    window.mobileBid = function() {
+        document.querySelector('.bid-panel').scrollIntoView({ behavior: 'smooth' });
+        confirmBid();
+    };
+
+    window.submitBid = function() {
+        const user = JSON.parse(localStorage.getItem('carleilao_session') || localStorage.getItem('carleilao_user') || '{}');
+        const raw = document.getElementById('bidInput').value.replace(/\D/g,'');
+        const val = Number(raw) / 100;
+
+        let bids = [];
+        try { bids = JSON.parse(localStorage.getItem('carleilao_bids') || '[]'); } catch(e){}
+        bids.push({
+            user: user.nome || user.name || user.email || 'Anônimo',
+            vehicle: vehicle.name,
+            vehicleId: vehicle.id,
+            value: val,
+            date: new Date().toLocaleDateString('pt-BR'),
+            time: new Date().toLocaleTimeString('pt-BR')
+        });
+        localStorage.setItem('carleilao_bids', JSON.stringify(bids));
+
+        // Registro compatível com index.html ("Meus lances") e admin.html (painel)
+        let lances = [];
+        try { lances = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch(e){}
+        lances.push({
+            userEmail: user.email || '',
+            vehicleName: vehicle.name,
+            value: val,
+            date: new Date().toISOString()
+        });
+        localStorage.setItem('carleilao_lances', JSON.stringify(lances));
+
+        // Update current price
+        vehicle.preco = String(val);
+        vehicle.price = val;
+        let allV = [];
+        try { allV = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]'); } catch(e){}
+        const idx = allV.findIndex(v => v.id === vehicle.id);
+        if (idx >= 0) { allV[idx].preco = String(val); allV[idx].price = val; localStorage.setItem('carleilao_vehicles', JSON.stringify(allV)); }
+
+        // Update bids in user
+        let uBids = [];
+        try { uBids = JSON.parse(user.bids || '[]'); } catch(e){}
+        uBids.push({vehicle: vehicle.name, value: val, date: new Date().toLocaleDateString('pt-BR')});
+        user.bids = JSON.stringify(uBids);
+        localStorage.setItem('carleilao_user', JSON.stringify(user));
+
+        document.getElementById('bidCurrent').textContent = 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        updateTotal(val);
+        document.getElementById('bidInput').value = '';
+
+        addHistoryItem(user.nome || user.name || 'Anônimo', val);
+        closeConfirm();
+        showToast('Lance realizado com sucesso!', 'success');
+    };
+
+    // HISTORY
+    window.toggleHistory = function(el) {
+        el.classList.toggle('open');
+        document.getElementById('historyBody').classList.toggle('show');
+    };
+
+    function addHistoryItem(name, value) {
+        const body = document.getElementById('historyBody');
+        if (body.querySelector('.history-empty')) body.innerHTML = '';
+        const masked = name.length > 4 ? '****' + name.slice(-3) : name;
+        const d = new Date();
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = '<div><div class="history-user">' + masked + '</div><div class="history-date">' + d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR') + '</div></div><div class="history-amount">R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '</div>';
+        body.prepend(div);
+    }
+
+    // Load existing bids
+    try {
+        const allBids = JSON.parse(localStorage.getItem('carleilao_bids') || '[]');
+        const vBids = allBids.filter(b => b.vehicleId == vehicle.id);
+        if (vBids.length) {
+            const body = document.getElementById('historyBody');
+            body.innerHTML = '';
+            vBids.reverse().forEach(b => addHistoryItem(b.user, b.value));
+        }
+    } catch(e){}
+
+    // OBSERVATIONS
+    if (vehicle.obs) {
+        document.getElementById('obsSection').style.display = '';
+        document.getElementById('obsText').textContent = vehicle.obs;
+    }
+
+    // LOCATION
+    if (vehicle.localizacao) {
+        document.getElementById('locSection').style.display = '';
+        document.getElementById('locText').textContent = vehicle.localizacao;
+    }
+
+    // INSPECTION
+    let inspItems = [];
+    try { inspItems = JSON.parse(vehicle.vistoria || '[]'); } catch(e){}
+    if (!inspItems.length) {
+        inspItems = [
+            {item:'Airbag',situacao:'Possui'},{item:'Ar Condicionado',situacao:'Sim, funciona'},{item:'Bancos',situacao:'Tecido'},{item:'Bateria (Carga)',situacao:'Sim, com carga'},{item:'Blindado',situacao:'Não'},{item:'Capota Conversível',situacao:'Não possui'},{item:'Categoria Do Veiculo',situacao:'Leve'},{item:'Central Multimídia',situacao:'Sim, funciona'},{item:'Chassi Recuperado',situacao:'Não'},{item:'Chassi Remarcado',situacao:'Não'},{item:'Chaves',situacao:'1Chave'},{item:'Câmbio',situacao:'Funciona'},{item:'Câmera De Estacionamento',situacao:'Sim, funciona'},{item:'Direção',situacao:'Funciona'},{item:'Embreagem',situacao:'Funciona'},{item:'Estepe',situacao:'Possui'},{item:'Freios',situacao:'Funciona'},{item:'Funcionando/Ligando (Motor)',situacao:'Funciona'},{item:'Ignição Start/Stop',situacao:'Sim'},{item:'Interior',situacao:'Normal'},{item:'Kitgás',situacao:'Não'},{item:'Número De Portas',situacao:'4'},{item:'Placa Preta',situacao:'Não'},{item:'Possui Abs',situacao:'Sim'},{item:'Possui Acesso Ao Painel De Km',situacao:'Sim'},{item:'Possui Carregador',situacao:'Não'},{item:'Possui Manual Do Proprietário',situacao:'Não'},{item:'Possui Passagem De Leilão',situacao:'Não'},{item:'Possui Placa',situacao:'Sim, as duas'},{item:'Possui Recall',situacao:'Não'},{item:'Possui Sinistro Com Seguro',situacao:'Não'},{item:'Possui Sinistro De Roubo/Furto',situacao:'Não'},{item:'Retrovisor Elétrico',situacao:'Sim'},{item:'Rádio',situacao:'Não possui'},{item:'Sensor De Estacionamento Dianteiro',situacao:'Não possui'},{item:'Sensor De Estacionamento Traseiro',situacao:'Não possui'},{item:'Status Do Laudo',situacao:'Reprovado'},{item:'Sucata',situacao:'Não'},{item:'Teto Solar',situacao:'Não possui'},{item:'Tipo De Direção',situacao:'Direção Hidráulica'},{item:'Tipo De Roda',situacao:'Roda de liga leve'},{item:'Trava Elétrica',situacao:'Sim'},{item:'Vidro Elétrico Dianteiro Direito',situacao:'Sim, funciona'},{item:'Vidro Elétrico Dianteiro Esquerdo',situacao:'Sim, funciona'},{item:'Vidro Elétrico Traseiro Direito',situacao:'Sim, funciona'},{item:'Vidro Elétrico Traseiro Esquerdo',situacao:'Sim, funciona'}
+        ];
+    }
+    document.getElementById('inspectionSection').style.display = '';
+    const table = document.getElementById('inspectionTable');
+    table.innerHTML = inspItems.map(item =>
+        '<tr><td>' + item.item + '</td><td>' + item.situacao + '</td></tr>'
+    ).join('');
+
+    // TABS
+    window.switchTab = function(btn, tab) {
+        document.querySelectorAll('.gallery-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+    };
+})();
+</script>
+</body>
+</html>
