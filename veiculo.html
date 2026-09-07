@@ -935,7 +935,7 @@ function showToast(msg, type) {
     }, 3500);
 }
 
-(function(){
+(async function(){
     // LOAD VEHICLE
     const params = new URLSearchParams(location.search);
     const vehicleId = params.get('id');
@@ -1084,7 +1084,7 @@ function showToast(msg, type) {
     };
 
     // CONFIRM BID
-    window.confirmBid = function() {
+    window.confirmBid = async function() {
         const user = JSON.parse(localStorage.getItem('carleilao_session') || localStorage.getItem('carleilao_user') || 'null');
         if (!user) { location.href = 'index.html'; return; }
 
@@ -1109,7 +1109,7 @@ function showToast(msg, type) {
         confirmBid();
     };
 
-    window.submitBid = function() {
+    window.submitBid = async function() {
         const user = JSON.parse(localStorage.getItem('carleilao_session') || localStorage.getItem('carleilao_user') || '{}');
         const raw = document.getElementById('bidInput').value.replace(/\D/g,'');
         const val = Number(raw) / 100;

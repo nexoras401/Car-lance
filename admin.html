@@ -1228,13 +1228,13 @@ function openVehicleModal(vehicle) {
     document.getElementById('veiculoCambio').value = vehicle ? (vehicle.cambio || '') : '';
     document.getElementById('veiculoCombustivel').value = vehicle ? (vehicle.combustivel || '') : '';
     document.getElementById('veiculoNota').value = vehicle ? (vehicle.nota || '') : '';
-    document.getElementById('veiculoPregao').value = vehicle ? (vehicle.dataPregao || '') : '';
+    document.getElementById('veiculoPregao').value = vehicle ? (vehicle.data_pregao || vehicle.dataPregao || '') : '';
     document.getElementById('veiculoLote').value = vehicle ? (vehicle.lote || '') : '';
-    document.getElementById('veiculoCod').value = vehicle ? (vehicle.codVeiculo || '') : '';
+    document.getElementById('veiculoCod').value = vehicle ? (vehicle.cod_veiculo || vehicle.codVeiculo || '') : '';
     document.getElementById('veiculoImg').value = vehicle ? (vehicle.img || '') : '';
-    document.getElementById('veiculoDesc').value = vehicle ? (vehicle.desc || '') : '';
+    document.getElementById('veiculoDesc').value = vehicle ? (vehicle.desc || vehicle.obs || '') : '';
     document.getElementById('veiculoEncerramento').value = vehicle && vehicle.encerramento ? vehicle.encerramento : '';
-    document.getElementById('veiculoLanceAtual').value = vehicle ? (vehicle.currentBid || '') : '';
+    document.getElementById('veiculoLanceAtual').value = vehicle ? (vehicle.current_bid || vehicle.currentBid || '') : '';
     document.getElementById('veiculoComissao').value = vehicle ? (vehicle.comissao || 10) : 10;
     document.getElementById('veiculoTaxa').value = vehicle ? (vehicle.taxa || 3) : 3;
     document.getElementById('veiculoLocalizacao').value = vehicle ? (vehicle.localizacao || '') : '';

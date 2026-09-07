@@ -4646,7 +4646,8 @@
                     n.obs = n.obs || n.desc || '';
                     return n;
                 });
-                if (typeof renderVehicles === 'function') renderVehicles();
+                if (typeof buildFilters === 'function') buildFilters();
+                if (typeof renderVehiclesKeepScroll === 'function') renderVehiclesKeepScroll(getFilteredVehicles());
             }
         }).catch(() => {});
         // Normalizar campos (fallback)
@@ -5083,7 +5084,7 @@
 
         let resetTargetUser = null;
 
-        function findAccount(e) {
+        async function findAccount(e) {
             e.preventDefault();
             const identifier = document.getElementById('forgotIdentifier').value.trim();
             const err = document.getElementById('forgotError');
@@ -5096,7 +5097,7 @@
                 err.classList.add('visible');
                 return;
             }
-            const user = findUserByIdentifier(identifier);
+            const user = await findUserByIdentifier(identifier);
             if (!user) {
                 input.classList.add('error');
                 err.textContent = 'Nenhuma conta encontrada com esses dados.';
@@ -5108,7 +5109,7 @@
             document.getElementById('forgotStep2').style.display = '';
         }
 
-        function resetPassword(e) {
+        async function resetPassword(e) {
             e.preventDefault();
             const senha = document.getElementById('resetSenha').value;
             const confirmar = document.getElementById('resetConfirmarSenha').value;
@@ -5679,10 +5680,26 @@
             document.getElementById('venderSuccess').classList.remove('visible');
         }
 
-        function enviarVenda(e) {
+        async function enviarVenda(e) {
             e.preventDefault();
             document.getElementById('venderFormView').style.display = 'none';
             document.getElementById('venderLoading').classList.add('visible');
+            // Salvar no Supabase
+            try {
+                const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+                await fetch(SUPABASE_URL + '/rest/v1/sales', {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({
+                        nome: document.getElementById('venderNome')?.value || '',
+                        telefone: document.getElementById('venderTelefone')?.value || '',
+                        email: document.getElementById('venderEmail')?.value || '',
+                        veiculo: document.getElementById('venderVeiculo')?.value || '',
+                        placa: document.getElementById('venderPlaca')?.value || ''
+                    })
+                });
+            } catch(e) {}
             setTimeout(() => {
                 document.getElementById('venderLoading').classList.remove('visible');
                 document.getElementById('venderSuccess').classList.add('visible');
