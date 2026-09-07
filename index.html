@@ -4629,13 +4629,27 @@
             { id:19, name:'Audi A4', details:'2.0 TFSI Quattro S tronic', year:'2023/2023', km:6700, price:290000, type:'carro', loteado:true, icon:'🚗', lote:'Lote 20', codVeiculo:'60124901', dataPregao:'02/10', financiamento:false, pago:false, cambio:'Automático', combustivel:'Gasolina', cor:'Preta', placa:'XYZ9012', nota:'09' },
         ];
 
-        // Carregar veículos do admin (localStorage) ou usar padrão
-        let vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles'));
-        if (!vehicles || !vehicles.length) {
-            vehicles = defaultVehicles;
-            localStorage.setItem('carleilao_vehicles', JSON.stringify(vehicles));
-        }
-        // Normalizar campos (admin pode salvar 'preco' em vez de 'price')
+        // Carregar veículos do Supabase ou usar padrão
+        const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+        let vehicles = defaultVehicles;
+        fetch(SUPABASE_URL + '/rest/v1/vehicles?select=*', {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+        }).then(r => r.json()).then(dbVehicles => {
+            if (dbVehicles && dbVehicles.length) {
+                vehicles = dbVehicles.map(v => {
+                    const n = Object.assign({}, v);
+                    if (n.id == null) n.id = Math.floor(Math.random()*900000)+100000;
+                    n.price = Number(n.price) || parseInt(n.preco) || 0;
+                    n.preco = n.price;
+                    n.km = Number(String(n.km).replace(/[^0-9]/g,'')) || 0;
+                    n.obs = n.obs || n.desc || '';
+                    return n;
+                });
+                if (typeof renderVehicles === 'function') renderVehicles();
+            }
+        }).catch(() => {});
+        // Normalizar campos (fallback)
         vehicles = vehicles.map(v => {
             const n = Object.assign({}, v);
             if (n.id == null) n.id = Math.floor(Math.random()*900000)+100000;
@@ -4645,7 +4659,6 @@
             n.obs = n.obs || n.desc || '';
             return n;
         });
-        localStorage.setItem('carleilao_vehicles', JSON.stringify(vehicles));
 
         // ==================== SEARCH & FILTER ====================
         let activeTab = 'Todos';
@@ -5048,8 +5061,16 @@
         }
 
         // Localiza conta por e-mail, telefone ou CPF (ignora máscara)
-        function findUserByIdentifier(identifier) {
-            const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
+        async function findUserByIdentifier(identifier) {
+            const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+            let users = [];
+            try {
+                const r = await fetch(SUPABASE_URL + '/rest/v1/users?select=*', {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+                });
+                users = await r.json();
+            } catch(e) { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); }
             const digits = String(identifier || '').replace(/\D/g, '');
             return users.find(u => {
                 if (!digits) return false;
@@ -5106,12 +5127,15 @@
                 err.classList.add('visible');
                 return;
             }
-            const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
-            const idx = users.findIndex(u => u.email === resetTargetUser.email);
-            if (idx >= 0) {
-                users[idx].senha = senha;
-                localStorage.setItem('carleilao_users', JSON.stringify(users));
-            }
+            try {
+                const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+                await fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(resetTargetUser.email), {
+                    method: 'PATCH',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senhaHash: await hashSenha(senha) })
+                });
+            } catch(e) {}
             resetTargetUser = null;
             showLogin();
             document.getElementById('modalSuccess').classList.add('visible');
@@ -5304,18 +5328,26 @@
                 criadoEm: new Date().toISOString()
             };
 
-            const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
-            if (users.find(u => String(u.email || '').toLowerCase() === user.email)) {
+            const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+            let existingUsers = [];
+            try {
+                const r = await fetch(SUPABASE_URL + '/rest/v1/users?select=*', {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+                });
+                existingUsers = await r.json();
+            } catch(e) {}
+            if (existingUsers.find(u => String(u.email || '').toLowerCase() === user.email)) {
                 showToast('Este e-mail já está cadastrado.', 'error');
                 return;
             }
             const cpfDigits = user.cpf.replace(/\D/g, '');
-            if (users.find(u => String(u.cpf || '').replace(/\D/g, '') === cpfDigits)) {
+            if (existingUsers.find(u => String(u.cpf || '').replace(/\D/g, '') === cpfDigits)) {
                 showToast('Este CPF já está cadastrado.', 'error');
                 return;
             }
             const telDigitsUser = user.celular.replace(/\D/g, '');
-            if (users.find(u => String(u.celular || '').replace(/\D/g, '') === telDigitsUser)) {
+            if (existingUsers.find(u => String(u.celular || '').replace(/\D/g, '') === telDigitsUser)) {
                 showToast('Este celular já está cadastrado.', 'error');
                 return;
             }
@@ -5323,8 +5355,17 @@
             // Nunca guardar senha em texto puro — aplica hash SHA-256 com salt
             user.senhaHash = await hashSenha(senha.value);
 
-            users.push(user);
-            localStorage.setItem('carleilao_users', JSON.stringify(users));
+            try {
+                await fetch(SUPABASE_URL + '/rest/v1/users', {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify(user)
+                });
+            } catch(e) {
+                const localUsers = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
+                localUsers.push(user);
+                localStorage.setItem('carleilao_users', JSON.stringify(localUsers));
+            }
 
             // Loading + sucesso
             document.getElementById('cadastroView').style.display = 'none';
@@ -5451,7 +5492,15 @@
                 return;
             }
 
-            const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
+            let users = [];
+            try {
+                const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+                const r = await fetch(SUPABASE_URL + '/rest/v1/users?select=*', {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+                });
+                users = await r.json();
+            } catch(e) { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); }
             const digits = emailOuTel.replace(/\D/g, '');
             const idLower = emailOuTel.toLowerCase();
             const candidates = users.filter(u => {

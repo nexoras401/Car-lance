@@ -408,6 +408,7 @@
         .toast.error { background:var(--red); }
         @keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
     </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -876,6 +877,11 @@ function showToast(msg, type) {
     }, 3500);
 }
 
+// ==================== SUPABASE ====================
+const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ==================== SEGURANÇA ====================
 // Hash SHA-256 com salt — as senhas nunca ficam em texto puro no código.
 // Cada administrador tem seu próprio login. Para trocar a senha de um admin: rode no terminal
@@ -1045,12 +1051,12 @@ function esc(str) {
 }
 
 // ==================== DASHBOARD ====================
-function loadDashboard() {
+async function loadDashboard() {
     let users = [], vehicles = [], bids = [], sells = [];
-    try { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); } catch(e) {}
-    try { vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]'); } catch(e) {}
-    try { bids = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch(e) {}
-    try { sells = JSON.parse(localStorage.getItem('carleilao_vendas') || '[]'); } catch(e) {}
+    try { const r = await db.from('users').select('*'); users = r.data || []; } catch(e) {}
+    try { const r = await db.from('vehicles').select('*'); vehicles = r.data || []; } catch(e) {}
+    try { const r = await db.from('bids').select('*'); bids = r.data || []; } catch(e) {}
+    try { const r = await db.from('sales').select('*'); sells = r.data || []; } catch(e) {}
     document.getElementById('statUsers').textContent = users.length;
     document.getElementById('statVehicles').textContent = vehicles.length;
     document.getElementById('statBids').textContent = bids.length;
@@ -1074,9 +1080,9 @@ function loadDashboard() {
 }
 
 // ==================== USUÁRIOS ====================
-function loadUsers() {
+async function loadUsers() {
     let users = [];
-    try { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); } catch(e) {}
+    try { const r = await db.from('users').select('*'); users = r.data || []; } catch(e) {}
     renderUsers(users);
 }
 
@@ -1100,9 +1106,9 @@ function renderUsers(users) {
     ).join('');
 }
 
-function filterUsers(q) {
+async function filterUsers(q) {
     let users = [];
-    try { users = JSON.parse(localStorage.getItem('carleilao_users') || '[]'); } catch(e) {}
+    try { const r = await db.from('users').select('*'); users = r.data || []; } catch(e) {}
     const filtered = users.filter(u => {
         const text = String((u.nome || '') + (u.email || '') + (u.cpf || '') + (u.celular || '') + (u.cidade || '')).toLowerCase();
         return text.includes(String(q || '').toLowerCase());
@@ -1110,8 +1116,9 @@ function filterUsers(q) {
     renderUsers(filtered);
 }
 
-function viewUser(i) {
-    const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
+async function viewUser(i) {
+    const r = await db.from('users').select('*');
+    const users = r.data || [];
     const u = users[i]; if (!u) return;
     document.getElementById('detailTitle').textContent = 'Dados do usuário';
     document.getElementById('detailBody').innerHTML =
@@ -1133,13 +1140,13 @@ function viewUser(i) {
     document.getElementById('detailModal').classList.add('active');
 }
 
-function confirmDeleteUser(i) {
-    const users = JSON.parse(localStorage.getItem('carleilao_users') || '[]');
+async function confirmDeleteUser(i) {
+    const r = await db.from('users').select('*');
+    const users = r.data || [];
     const u = users[i]; if (!u) return;
     document.getElementById('confirmMsg').textContent = 'Excluir o usuário "' + (u.nome || u.email) + '"? Esta ação é irreversível.';
-    document.getElementById('confirmBtn').onclick = () => {
-        users.splice(i, 1);
-        localStorage.setItem('carleilao_users', JSON.stringify(users));
+    document.getElementById('confirmBtn').onclick = async () => {
+        await db.from('users').delete().eq('id', u.id);
         loadUsers();
         loadDashboard();
         document.getElementById('confirmModal').classList.remove('active');
@@ -1148,12 +1155,14 @@ function confirmDeleteUser(i) {
 }
 
 // ==================== VEÍCULOS ====================
-function loadVehicles() {
-    let vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
-    // Se não tiver veículos salvos no admin, carregar do index
+async function loadVehicles() {
+    let vehicles = [];
+    try { const r = await db.from('vehicles').select('*'); vehicles = r.data || []; } catch(e) {}
     if (!vehicles.length) {
-        vehicles = getDefaultVehicles();
-        localStorage.setItem('carleilao_vehicles', JSON.stringify(vehicles));
+        const defaults = getDefaultVehicles();
+        for (const v of defaults) { await db.from('vehicles').insert(v); }
+        const r2 = await db.from('vehicles').select('*');
+        vehicles = r2.data || [];
     }
     renderVehicles(vehicles);
 }
@@ -1192,8 +1201,9 @@ function renderVehicles(vehicles) {
     ).join('');
 }
 
-function filterVehicles(q) {
-    const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+async function filterVehicles(q) {
+    const r = await db.from('vehicles').select('*');
+    const vehicles = r.data || [];
     const filtered = vehicles.filter(v => {
         const text = (v.name + v.details + v.year + v.type).toLowerCase();
         return text.includes(q.toLowerCase());
@@ -1344,15 +1354,15 @@ function loadVistoriaItems(vehicle) {
     }
 }
 
-function editVehicle(id) {
-    const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+async function editVehicle(id) {
+    const r = await db.from('vehicles').select('*');
+    const vehicles = r.data || [];
     const v = vehicles.find(x => x.id === id);
     if (v) openVehicleModal(v);
 }
 
-function saveVehicle(e) {
+async function saveVehicle(e) {
     e.preventDefault();
-    let vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
     const editId = document.getElementById('veiculoEditId').value;
     const data = {
         name: document.getElementById('veiculoNome').value,
@@ -1360,7 +1370,6 @@ function saveVehicle(e) {
         year: document.getElementById('veiculoAno').value,
         km: parseInt(document.getElementById('veiculoKm').value) || 0,
         price: parseInt(document.getElementById('veiculoPreco').value) || 0,
-        preco: document.getElementById('veiculoPreco').value,
         type: document.getElementById('veiculoTipo').value,
         icon: document.getElementById('veiculoIcon').value || '🚗',
         placa: document.getElementById('veiculoPlaca').value.toUpperCase(),
@@ -1368,14 +1377,14 @@ function saveVehicle(e) {
         cambio: document.getElementById('veiculoCambio').value,
         combustivel: document.getElementById('veiculoCombustivel').value,
         nota: document.getElementById('veiculoNota').value,
-        dataPregao: document.getElementById('veiculoPregao').value,
+        data_pregao: document.getElementById('veiculoPregao').value,
         lote: document.getElementById('veiculoLote').value,
-        codVeiculo: document.getElementById('veiculoCod').value,
+        cod_veiculo: document.getElementById('veiculoCod').value,
         img: document.getElementById('veiculoImg').value,
-        desc: document.getElementById('veiculoDesc').value,
+        "desc": document.getElementById('veiculoDesc').value,
         obs: document.getElementById('veiculoDesc').value,
         encerramento: document.getElementById('veiculoEncerramento').value,
-        currentBid: parseInt(document.getElementById('veiculoLanceAtual').value) || 0,
+        current_bid: parseInt(document.getElementById('veiculoLanceAtual').value) || 0,
         comissao: parseInt(document.getElementById('veiculoComissao').value) || 10,
         taxa: parseInt(document.getElementById('veiculoTaxa').value) || 3,
         localizacao: document.getElementById('veiculoLocalizacao').value,
@@ -1387,26 +1396,22 @@ function saveVehicle(e) {
         loteado: false
     };
     if (editId) {
-        const idx = vehicles.findIndex(v => v.id == editId);
-        if (idx >= 0) { vehicles[idx] = { ...vehicles[idx], ...data }; }
+        await db.from('vehicles').update(data).eq('id', editId);
     } else {
-        data.id = ++nextVehicleId;
-        vehicles.push(data);
+        await db.from('vehicles').insert(data);
     }
-    localStorage.setItem('carleilao_vehicles', JSON.stringify(vehicles));
     loadVehicles();
     loadDashboard();
     closeVehicleModal();
 }
 
-function confirmDeleteVehicle(id) {
-    const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
+async function confirmDeleteVehicle(id) {
+    const r = await db.from('vehicles').select('*');
+    const vehicles = r.data || [];
     const v = vehicles.find(x => x.id === id); if (!v) return;
     document.getElementById('confirmMsg').textContent = 'Excluir o veículo "' + v.name + '"?';
-    document.getElementById('confirmBtn').onclick = () => {
-        const vehicles = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]');
-        const filtered = vehicles.filter(x => x.id !== id);
-        localStorage.setItem('carleilao_vehicles', JSON.stringify(filtered));
+    document.getElementById('confirmBtn').onclick = async () => {
+        await db.from('vehicles').delete().eq('id', id);
         loadVehicles();
         loadDashboard();
         document.getElementById('confirmModal').classList.remove('active');
@@ -1415,36 +1420,34 @@ function confirmDeleteVehicle(id) {
 }
 
 // ==================== LANCES ====================
-function loadBids() {
+async function loadBids() {
     let bids = [];
-    try { bids = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch(e) {}
+    try { const r = await db.from('bids').select('*'); bids = r.data || []; } catch(e) {}
     const tbody = document.getElementById('bidsTable');
     const empty = document.getElementById('bidsEmpty');
     if (!bids.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
     empty.style.display = 'none';
     tbody.innerHTML = bids.map((b, i) =>
         '<tr>' +
-        '<td data-label="Usuário">' + esc(b.userEmail || '-') + '</td>' +
-        '<td data-label="Veículo"><strong>' + esc(b.vehicleName || '-') + '</strong></td>' +
+        '<td data-label="Usuário">' + esc(b.user_email || '-') + '</td>' +
+        '<td data-label="Veículo"><strong>' + esc(b.vehicle_name || '-') + '</strong></td>' +
         '<td data-label="Valor"><strong>R$ ' + Number(b.value || 0).toLocaleString('pt-BR') + '</strong></td>' +
-        '<td data-label="Data">' + (b.date ? new Date(b.date).toLocaleDateString('pt-BR') : '-') + '</td>' +
-        '<td data-label="Ações"><button class="action-btn danger" onclick="deleteBid(' + i + ')">Excluir</button></td>' +
+        '<td data-label="Data">' + (b.created_at ? new Date(b.created_at).toLocaleDateString('pt-BR') : '-') + '</td>' +
+        '<td data-label="Ações"><button class="action-btn danger" onclick="deleteBid(' + b.id + ')">Excluir</button></td>' +
         '</tr>'
     ).join('');
 }
 
-function deleteBid(i) {
-    const bids = JSON.parse(localStorage.getItem('carleilao_lances') || '[]');
-    bids.splice(i, 1);
-    localStorage.setItem('carleilao_lances', JSON.stringify(bids));
+async function deleteBid(id) {
+    await db.from('bids').delete().eq('id', id);
     loadBids();
     loadDashboard();
 }
 
 // ==================== VENDAS ====================
-function loadSells() {
+async function loadSells() {
     let sells = [];
-    try { sells = JSON.parse(localStorage.getItem('carleilao_vendas') || '[]'); } catch(e) {}
+    try { const r = await db.from('sales').select('*'); sells = r.data || []; } catch(e) {}
     const tbody = document.getElementById('sellsTable');
     const empty = document.getElementById('sellsEmpty');
     if (!sells.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
@@ -1456,16 +1459,14 @@ function loadSells() {
         '<td data-label="E-mail">' + esc(s.email || '-') + '</td>' +
         '<td data-label="Veículo">' + esc(s.veiculo || '-') + '</td>' +
         '<td data-label="Placa">' + esc(s.placa || '-') + '</td>' +
-        '<td data-label="Data">' + (s.date ? new Date(s.date).toLocaleDateString('pt-BR') : '-') + '</td>' +
-        '<td data-label="Ações"><button class="action-btn danger" onclick="deleteSell(' + i + ')">Excluir</button></td>' +
+        '<td data-label="Data">' + (s.created_at ? new Date(s.created_at).toLocaleDateString('pt-BR') : '-') + '</td>' +
+        '<td data-label="Ações"><button class="action-btn danger" onclick="deleteSell(' + s.id + ')">Excluir</button></td>' +
         '</tr>'
     ).join('');
 }
 
-function deleteSell(i) {
-    const sells = JSON.parse(localStorage.getItem('carleilao_vendas') || '[]');
-    sells.splice(i, 1);
-    localStorage.setItem('carleilao_vendas', JSON.stringify(sells));
+async function deleteSell(id) {
+    await db.from('sales').delete().eq('id', id);
     loadSells();
     loadDashboard();
 }

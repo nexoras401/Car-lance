@@ -950,9 +950,14 @@ function showToast(msg, type) {
         {id:'6',name:'Chevrolet Onix 1.0 LT',details:'Manual Flex 4P',year:'2023/2023',km:'133509',placa:'S*****4',cor:'Branco',cambio:'Manual',combustivel:'Álcool/Gasolina',nota:'05',lote:'06',preco:'59900',img:'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800',icon:'🚗',dataPregao:'15/09/2026',codVeiculo:'006',status:'andamento',encerramento: Date.now()+86400000*4}
     ];
 
-    let allVehicles = [];
-    try { allVehicles = JSON.parse(localStorage.getItem('carleilao_vehicles')) || []; } catch(e){}
-    if (!allVehicles.length) allVehicles = defaultVehicles;
+    let allVehicles = defaultVehicles;
+    try {
+        const r = await fetch('https://wtwsvzroknzhmpqqwfdi.supabase.co/rest/v1/vehicles?select=*', {
+            headers: { 'apikey': 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C', 'Authorization': 'Bearer sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C' }
+        });
+        const dbV = await r.json();
+        if (dbV && dbV.length) allVehicles = dbV;
+    } catch(e) {}
 
     const vehicle = allVehicles.find(v => String(v.id) === String(vehicleId));
     if (!vehicle) { showToast('Veículo não encontrado.', 'error'); setTimeout(() => { location.href = 'index.html'; }, 1200); return; }
@@ -1109,36 +1114,33 @@ function showToast(msg, type) {
         const raw = document.getElementById('bidInput').value.replace(/\D/g,'');
         const val = Number(raw) / 100;
 
-        let bids = [];
-        try { bids = JSON.parse(localStorage.getItem('carleilao_bids') || '[]'); } catch(e){}
-        bids.push({
-            user: user.nome || user.name || user.email || 'Anônimo',
-            vehicle: vehicle.name,
-            vehicleId: vehicle.id,
-            value: val,
-            date: new Date().toLocaleDateString('pt-BR'),
-            time: new Date().toLocaleTimeString('pt-BR')
-        });
-        localStorage.setItem('carleilao_bids', JSON.stringify(bids));
+        const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
 
-        // Registro compatível com index.html ("Meus lances") e admin.html (painel)
-        let lances = [];
-        try { lances = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch(e){}
-        lances.push({
-            userEmail: user.email || '',
-            vehicleName: vehicle.name,
-            value: val,
-            date: new Date().toISOString()
-        });
-        localStorage.setItem('carleilao_lances', JSON.stringify(lances));
+        // Salvar lance no Supabase
+        try {
+            await fetch(SUPABASE_URL + '/rest/v1/bids', {
+                method: 'POST', headers: { ...headers, 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ user_email: user.email || '', vehicle_name: vehicle.name, vehicle_id: vehicle.id, value: val })
+            });
+        } catch(e) {}
 
-        // Update current price
-        vehicle.preco = String(val);
-        vehicle.price = val;
-        let allV = [];
-        try { allV = JSON.parse(localStorage.getItem('carleilao_vehicles') || '[]'); } catch(e){}
-        const idx = allV.findIndex(v => v.id === vehicle.id);
-        if (idx >= 0) { allV[idx].preco = String(val); allV[idx].price = val; localStorage.setItem('carleilao_vehicles', JSON.stringify(allV)); }
+        // Salvar lances no Supabase
+        try {
+            await fetch(SUPABASE_URL + '/rest/v1/bids', {
+                method: 'POST', headers: { ...headers, 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ user_email: user.email || '', vehicle_name: vehicle.name, value: val, created_at: new Date().toISOString() })
+            });
+        } catch(e) {}
+
+        // Atualizar preço do veículo no Supabase
+        try {
+            await fetch(SUPABASE_URL + '/rest/v1/vehicles?id=eq.' + vehicle.id, {
+                method: 'PATCH', headers: { ...headers, 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ current_bid: val, price: val })
+            });
+        } catch(e) {}
 
         // Update bids in user
         let uBids = [];
@@ -1173,16 +1175,16 @@ function showToast(msg, type) {
         body.prepend(div);
     }
 
-    // Load existing bids
-    try {
-        const allBids = JSON.parse(localStorage.getItem('carleilao_bids') || '[]');
-        const vBids = allBids.filter(b => b.vehicleId == vehicle.id);
-        if (vBids.length) {
+    // Load existing bids from Supabase
+    fetch('https://wtwsvzroknzhmpqqwfdi.supabase.co/rest/v1/bids?vehicle_id=eq.' + vehicle.id + '&select=*', {
+        headers: { 'apikey': 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C', 'Authorization': 'Bearer sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C' }
+    }).then(r => r.json()).then(vBids => {
+        if (vBids && vBids.length) {
             const body = document.getElementById('historyBody');
             body.innerHTML = '';
-            vBids.reverse().forEach(b => addHistoryItem(b.user, b.value));
+            vBids.reverse().forEach(b => addHistoryItem(b.user_email || 'Anônimo', b.value));
         }
-    } catch(e){}
+    }).catch(() => {});
 
     // OBSERVATIONS
     if (vehicle.obs) {
