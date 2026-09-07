@@ -4644,6 +4644,10 @@
                     n.preco = n.price;
                     n.km = Number(String(n.km).replace(/[^0-9]/g,'')) || 0;
                     n.obs = n.obs || n.desc || '';
+                    // Normalizar snake_case para camelCase
+                    n.codVeiculo = n.codVeiculo || n.cod_veiculo || '';
+                    n.dataPregao = n.dataPregao || n.data_pregao || '';
+                    n.currentBid = n.currentBid || n.current_bid || 0;
                     return n;
                 });
                 if (typeof buildFilters === 'function') buildFilters();
@@ -5587,12 +5591,17 @@
                 favCount.textContent = '0';
                 return;
             }
-            let lances = [];
-            try { lances = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch (e) { lances = []; }
+            lanceCount.textContent = '...';
+            favCount.textContent = '...';
+            const SB_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+            const SB_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+            fetch(SB_URL + '/rest/v1/bids?select=id&user_email=eq.' + encodeURIComponent(session.email), {
+                headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+            }).then(r => r.json()).then(bids => {
+                lanceCount.textContent = (bids || []).length;
+            }).catch(() => { lanceCount.textContent = '0'; });
             let favs = [];
             try { favs = JSON.parse(localStorage.getItem('carleilao_favoritos') || '[]'); } catch (e) { favs = []; }
-            const meusLances = lances.filter(l => l.userEmail === session.email);
-            lanceCount.textContent = meusLances.length;
             favCount.textContent = favs.length;
         }
 
@@ -5950,15 +5959,22 @@
                 document.getElementById('configEmail').textContent = user.email || '-';
                 document.getElementById('configCelular').textContent = user.celular || '-';
             } else if (page === 'lances') {
-                let lances = [];
-                try { lances = JSON.parse(localStorage.getItem('carleilao_lances') || '[]'); } catch (e) { lances = []; }
-                const userLances = lances.filter(l => (l.userEmail || '') === (user.email || '')).sort((a, b) => new Date(b.date) - new Date(a.date));
                 const container = document.getElementById('lancesContent');
-                if (userLances.length === 0) {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><h3>Nenhum lance ainda</h3><p>Quando você der lances em veículos, eles aparecerão aqui.</p><a href="#" class="empty-state-btn" onclick="closePage()">Explorar veículos</a></div>';
-                } else {
-                    container.innerHTML = '<div class="lance-list">' + userLances.map(l => '<div class="lance-item"><div class="lance-item-icon">🚗</div><div class="lance-item-info"><div class="lance-item-name">' + esc(l.vehicleName) + '</div><div class="lance-item-detail">Lance em ' + new Date(l.date).toLocaleDateString('pt-BR') + '</div></div><div class="lance-item-price">R$ ' + Number(l.value).toLocaleString('pt-BR') + '</div><span class="lance-item-status ativo">Ativo</span></div>').join('') + '</div>';
-                }
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#9BA3AF;">Carregando...</div>';
+                const SB_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
+                const SB_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
+                fetch(SB_URL + '/rest/v1/bids?select=*&order=created_at.desc', {
+                    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+                }).then(r => r.json()).then(allBids => {
+                    const userBids = (allBids || []).filter(b => (b.user_email || '') === (user.email || ''));
+                    if (userBids.length === 0) {
+                        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><h3>Nenhum lance ainda</h3><p>Quando você der lances em veículos, eles aparecerão aqui.</p><a href="#" class="empty-state-btn" onclick="closePage()">Explorar veículos</a></div>';
+                    } else {
+                        container.innerHTML = '<div class="lance-list">' + userBids.map(l => '<div class="lance-item"><div class="lance-item-icon">🚗</div><div class="lance-item-info"><div class="lance-item-name">' + esc(l.vehicle_name || '') + '</div><div class="lance-item-detail">Lance em ' + (l.created_at ? new Date(l.created_at).toLocaleDateString('pt-BR') : '-') + '</div></div><div class="lance-item-price">R$ ' + Number(l.value || 0).toLocaleString('pt-BR') + '</div><span class="lance-item-status ativo">Ativo</span></div>').join('') + '</div>';
+                    }
+                }).catch(() => {
+                    container.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3><p>Tente novamente.</p></div>';
+                });
             } else if (page === 'favoritos') {
                 let favs = [];
                 try { favs = JSON.parse(localStorage.getItem('carleilao_favoritos') || '[]'); } catch (e) { favs = []; }
