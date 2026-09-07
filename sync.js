@@ -18,14 +18,32 @@ async function sbCheck() {
     return _sbAvailable;
 }
 
+// Normaliza campos snake_case do banco para camelCase do JS
+function normalizeVehicle(v) {
+    const n = Object.assign({}, v);
+    if (n.id == null) n.id = Math.floor(Math.random()*900000)+100000;
+    n.price = Number(n.price) || parseInt(n.preco) || 0;
+    n.preco = n.price;
+    n.km = Number(String(n.km).replace(/[^0-9]/g,'')) || 0;
+    n.obs = n.obs || n.desc || '';
+    n.codVeiculo = n.codVeiculo || n.cod_veiculo || '';
+    n.dataPregao = n.dataPregao || n.data_pregao || '';
+    n.currentBid = n.currentBid || n.current_bid || 0;
+    return n;
+}
+
 // ==================== GENERIC CRUD ====================
 
 async function dbGet(table) {
     if (await sbCheck()) {
         const r = await fetch(SB_URL + '/rest/v1/' + table + '?select=*', { headers: SB_HEADERS });
-        return await r.json();
+        const data = await r.json();
+        if (table === 'vehicles' && Array.isArray(data)) return data.map(normalizeVehicle);
+        return data;
     }
-    return JSON.parse(localStorage.getItem('carleilao_' + table) || '[]');
+    const local = JSON.parse(localStorage.getItem('carleilao_' + table) || '[]');
+    if (table === 'vehicles') return local.map(normalizeVehicle);
+    return local;
 }
 
 async function dbInsert(table, data) {
@@ -41,21 +59,6 @@ async function dbInsert(table, data) {
     }
 }
 
-async function dbInsertBatch(table, items) {
-    if (await sbCheck()) {
-        for (const item of items) {
-            await fetch(SB_URL + '/rest/v1/' + table, {
-                method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
-                body: JSON.stringify(item)
-            });
-        }
-    } else {
-        const arr = JSON.parse(localStorage.getItem('carleilao_' + table) || '[]');
-        arr.push(...items);
-        localStorage.setItem('carleilao_' + table, JSON.stringify(arr));
-    }
-}
-
 async function dbUpdate(table, filter, data) {
     if (await sbCheck()) {
         await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
@@ -63,7 +66,6 @@ async function dbUpdate(table, filter, data) {
             body: JSON.stringify(data)
         });
     } else {
-        // localStorage: parse filter para encontrar item
         const arr = JSON.parse(localStorage.getItem('carleilao_' + table) || '[]');
         const match = filter.match(/id=eq\.(\d+)/);
         if (match) {
