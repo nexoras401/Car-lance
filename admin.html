@@ -407,9 +407,7 @@
         .toast.success { background:var(--green); }
         .toast.error { background:var(--red); }
         @keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-    </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
+    </style></head>
 <body>
 
 <!-- ==================== LOGIN ==================== -->
@@ -857,6 +855,7 @@
     </div>
 </div>
 
+<script src="sync.js"></script>
 <script>
 // Toast notification (substitui alert do navegador)
 function showToast(msg, type) {
@@ -876,11 +875,6 @@ function showToast(msg, type) {
         setTimeout(() => t.remove(), 300);
     }, 3500);
 }
-
-// ==================== SUPABASE ====================
-const SUPABASE_URL = 'https://wtwsvzroknzhmpqqwfdi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_Il4W2ZijsQXIX3OiY0GpQw_fft5L46C';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==================== SEGURANÇA ====================
 // Hash SHA-256 com salt — as senhas nunca ficam em texto puro no código.
@@ -1053,10 +1047,10 @@ function esc(str) {
 // ==================== DASHBOARD ====================
 async function loadDashboard() {
     let users = [], vehicles = [], bids = [], sells = [];
-    try { const r = await db.from('users').select('*'); users = r.data || []; } catch(e) {}
-    try { const r = await db.from('vehicles').select('*'); vehicles = r.data || []; } catch(e) {}
-    try { const r = await db.from('bids').select('*'); bids = r.data || []; } catch(e) {}
-    try { const r = await db.from('sales').select('*'); sells = r.data || []; } catch(e) {}
+    try { users = await dbGet('users'); } catch(e) {}
+    try { vehicles = await dbGet('vehicles'); } catch(e) {}
+    try { bids = await dbGet('bids'); } catch(e) {}
+    try { sells = await dbGet('sales'); } catch(e) {}
     document.getElementById('statUsers').textContent = users.length;
     document.getElementById('statVehicles').textContent = vehicles.length;
     document.getElementById('statBids').textContent = bids.length;
@@ -1082,7 +1076,7 @@ async function loadDashboard() {
 // ==================== USUÁRIOS ====================
 async function loadUsers() {
     let users = [];
-    try { const r = await db.from('users').select('*'); users = r.data || []; } catch(e) {}
+    try { users = await dbGet('users'); } catch(e) {}
     renderUsers(users);
 }
 
@@ -1108,7 +1102,7 @@ function renderUsers(users) {
 
 async function filterUsers(q) {
     let users = [];
-    try { const r = await db.from('users').select('*'); users = r.data || []; } catch(e) {}
+    try { users = await dbGet('users'); } catch(e) {}
     const filtered = users.filter(u => {
         const text = String((u.nome || '') + (u.email || '') + (u.cpf || '') + (u.celular || '') + (u.cidade || '')).toLowerCase();
         return text.includes(String(q || '').toLowerCase());
@@ -1117,8 +1111,7 @@ async function filterUsers(q) {
 }
 
 async function viewUser(i) {
-    const r = await db.from('users').select('*');
-    const users = r.data || [];
+    const users = await dbGet('users');
     const u = users[i]; if (!u) return;
     document.getElementById('detailTitle').textContent = 'Dados do usuário';
     document.getElementById('detailBody').innerHTML =
@@ -1141,12 +1134,11 @@ async function viewUser(i) {
 }
 
 async function confirmDeleteUser(i) {
-    const r = await db.from('users').select('*');
-    const users = r.data || [];
+    const users = await dbGet('users');
     const u = users[i]; if (!u) return;
     document.getElementById('confirmMsg').textContent = 'Excluir o usuário "' + (u.nome || u.email) + '"? Esta ação é irreversível.';
     document.getElementById('confirmBtn').onclick = async () => {
-        await db.from('users').delete().eq('id', u.id);
+        await dbDelete('users', 'id=eq.' + u.id);
         loadUsers();
         loadDashboard();
         document.getElementById('confirmModal').classList.remove('active');
@@ -1157,12 +1149,11 @@ async function confirmDeleteUser(i) {
 // ==================== VEÍCULOS ====================
 async function loadVehicles() {
     let vehicles = [];
-    try { const r = await db.from('vehicles').select('*'); vehicles = r.data || []; } catch(e) {}
+    try { vehicles = await dbGet('vehicles'); } catch(e) {}
     if (!vehicles.length) {
         const defaults = getDefaultVehicles();
-        for (const v of defaults) { await db.from('vehicles').insert(v); }
-        const r2 = await db.from('vehicles').select('*');
-        vehicles = r2.data || [];
+        for (const v of defaults) { await dbInsert('vehicles', v); }
+        vehicles = await dbGet('vehicles');
     }
     renderVehicles(vehicles);
 }
@@ -1202,8 +1193,7 @@ function renderVehicles(vehicles) {
 }
 
 async function filterVehicles(q) {
-    const r = await db.from('vehicles').select('*');
-    const vehicles = r.data || [];
+    const vehicles = await dbGet('vehicles');
     const filtered = vehicles.filter(v => {
         const text = (v.name + v.details + v.year + v.type).toLowerCase();
         return text.includes(q.toLowerCase());
@@ -1355,8 +1345,7 @@ function loadVistoriaItems(vehicle) {
 }
 
 async function editVehicle(id) {
-    const r = await db.from('vehicles').select('*');
-    const vehicles = r.data || [];
+    const vehicles = await dbGet('vehicles');
     const v = vehicles.find(x => x.id === id);
     if (v) openVehicleModal(v);
 }
@@ -1396,9 +1385,9 @@ async function saveVehicle(e) {
         loteado: false
     };
     if (editId) {
-        await db.from('vehicles').update(data).eq('id', editId);
+        await dbUpdate('vehicles', 'id=eq.' + editId, data);
     } else {
-        await db.from('vehicles').insert(data);
+        await dbInsert('vehicles', data);
     }
     loadVehicles();
     loadDashboard();
@@ -1406,12 +1395,11 @@ async function saveVehicle(e) {
 }
 
 async function confirmDeleteVehicle(id) {
-    const r = await db.from('vehicles').select('*');
-    const vehicles = r.data || [];
+    const vehicles = await dbGet('vehicles');
     const v = vehicles.find(x => x.id === id); if (!v) return;
     document.getElementById('confirmMsg').textContent = 'Excluir o veículo "' + v.name + '"?';
     document.getElementById('confirmBtn').onclick = async () => {
-        await db.from('vehicles').delete().eq('id', id);
+        await dbDelete('vehicles', 'id=eq.' + id);
         loadVehicles();
         loadDashboard();
         document.getElementById('confirmModal').classList.remove('active');
@@ -1422,7 +1410,7 @@ async function confirmDeleteVehicle(id) {
 // ==================== LANCES ====================
 async function loadBids() {
     let bids = [];
-    try { const r = await db.from('bids').select('*'); bids = r.data || []; } catch(e) {}
+    try { bids = await dbGet('bids'); } catch(e) {}
     const tbody = document.getElementById('bidsTable');
     const empty = document.getElementById('bidsEmpty');
     if (!bids.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
@@ -1439,7 +1427,7 @@ async function loadBids() {
 }
 
 async function deleteBid(id) {
-    await db.from('bids').delete().eq('id', id);
+    await dbDelete('bids', 'id=eq.' + id);
     loadBids();
     loadDashboard();
 }
@@ -1447,7 +1435,7 @@ async function deleteBid(id) {
 // ==================== VENDAS ====================
 async function loadSells() {
     let sells = [];
-    try { const r = await db.from('sales').select('*'); sells = r.data || []; } catch(e) {}
+    try { sells = await dbGet('sales'); } catch(e) {}
     const tbody = document.getElementById('sellsTable');
     const empty = document.getElementById('sellsEmpty');
     if (!sells.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
@@ -1466,7 +1454,7 @@ async function loadSells() {
 }
 
 async function deleteSell(id) {
-    await db.from('sales').delete().eq('id', id);
+    await dbDelete('sales', 'id=eq.' + id);
     loadSells();
     loadDashboard();
 }
